@@ -1,0 +1,23 @@
+// Leon Ng
+//  Make the Fake: Super Mega Blasteroids 9
+
+const config = {
+    type: Phaser.AUTO,
+    pixelArt: true,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        zoom: 1,
+        width: 720,
+        height: 540,
+    },
+
+    physics: {
+        default: "arcade",
+        arcade: {
+            debug: true,
+        },
+    },
+    scene: [Menu, Play],
+};
+const game = new Phaser.Game(config);
