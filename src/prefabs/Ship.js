@@ -1,13 +1,13 @@
 class Ship extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y, texture, direction) {
-        super(scene, x, y, texture, direction);
-        scene.add.existing(this);
+    constructor(scene, x, y, texture) {
+        super(scene, x, y, texture);
+        this.add.existing(this);
         scene.physics.add.existing(this);
 
         this.body.setCollideWorldBounds(true);
 
         // initialize state machine managing Slug (initial state, possible states, state args[])
-        this.slugFSM = new StateMachine(
+        this.shipFSM = new StateMachine(
             "idle",
             {
                 idle: new IdleState(),

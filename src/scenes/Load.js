@@ -11,10 +11,19 @@ class Load extends Phaser.Scene {
         // this.load.audio("backgroundMusic", "song.wav");
 
         // Load Font
-        this.load.bitmapFont("VCROSDMono", "VCROSDMono.png", "VCROSDMono.xml");
+        this.load.bitmapFont(
+            "VCROSDMono",
+            "font/VCROSDMono.png",
+            "font/VCROSDMono.xml"
+        );
+        this.load.image("background", "img/stars.png");
     }
     create() {
-        this.scale.setGameSize(720, 540);
+        // this.scale.setGameSize(720, 540);
+
+        this.background = this.add
+            .tileSprite(0, 0, 1024, 1024, "background")
+            .setOrigin(0, 0);
 
         this.add
             .bitmapText(
@@ -25,7 +34,8 @@ class Load extends Phaser.Scene {
                 63, // size
                 1 // align
             )
-            .setOrigin(0.5);
+            .setOrigin(0.5)
+            .setCharacterTint(0, -1, true, "0xFFFFFF");
 
         this.add
             .bitmapText(
@@ -36,11 +46,13 @@ class Load extends Phaser.Scene {
                 42, // size
                 1 // align
             )
-            .setOrigin(0.5);
+            .setOrigin(0.5)
+            .setCharacterTint(0, -1, true, "0xFFFFFF");
     }
     update() {
-        this.time.delayedCall(300, () => {
+        this.time.delayedCall(30, () => {
             this.scene.start("menuScene");
         });
+        this.background.tilePositionY -= 0;
     }
 }
