@@ -1,6 +1,6 @@
 class Menu extends Phaser.Scene {
     constructor() {
-        super("MenuScene");
+        super("menuScene");
     }
     init() {}
     preload() {}
@@ -9,60 +9,145 @@ class Menu extends Phaser.Scene {
         // height: 540,
         this.scale.setGameSize(720, 540);
 
-        // start text
-        let menuConfig = {
-            fontFamily: "Courier New",
-            fontSize: "16px",
-            // backgroundColor: "#00FF00",
-            color: "#FFFFFF",
-            align: "center",
-            padding: {
-                top: 5,
-                bottom: 5,
-            },
-            fixedWidth: 0,
-        };
+        var option = ["Play", "Scores", "Credits"];
 
-        // menuConfig.backgroundColor = "#00FF00";
-        // menuConfig.color = "#000";
-        this.add
-            .text(
-                game.config.width / 2,
-                game.config.height / 4,
-                "Super Mega Blasteroids 9",
-                menuConfig
-            )
-            .setOrigin(0.5);
-        this.add
-            .text(
-                game.config.width / 2,
-                game.config.height / 3,
-                "made by Leon Ng",
-                menuConfig
-            )
-            .setOrigin(0.5);
+        this.add.bitmapText(
+            game.config.width / 3 + 21, // x
+            (game.config.height / 10) * 6, // y
+            "VCROSDMono", // key
+            option[0], // text
+            42 // size
+        );
 
-        this.add
-            .text(
-                game.config.width / 2,
-                (game.config.height * 2) / 3,
-                "Press any key\nto play",
-                menuConfig
-            )
-            .setOrigin(0.5);
-        (menuConfig.color = "#222222"),
-            this.add
-                .text(
-                    game.config.width / 2,
-                    (game.config.height * 5) / 6,
-                    "Press d key for\ndebug mode",
-                    menuConfig
-                )
-                .setOrigin(0.5);
+        this.add.bitmapText(
+            game.config.width / 3 + 21, // x
+            (game.config.height / 10) * 7, // y
+            "VCROSDMono", // key
+            option[1], // text
+            42 // size
+        );
+
+        this.add.bitmapText(
+            game.config.width / 3 + 21, // x
+            (game.config.height / 10) * 8, // y
+            "VCROSDMono", // key
+            option[2], // text
+            42 // size
+        );
 
         this.input.keyboard.on("keydown", () => {
             this.scene.start("playScene");
         });
     }
-    update() {}
+    update() {
+        console.log("added text");
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "SUPER MEGA\nBLASTEROIDS 9", // text
+                63, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xff0000");
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "SUPER MEGA\nBLASTEROIDS 9", // text
+                63, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xff0000");
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "SUPER MEGA\nBLASTEROIDS 9", // text
+                63, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xff0000");
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "SUPER MEGA\nBLASTEROIDS 9", // text
+                63, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xff0000");
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "SUPER MEGA\nBLASTEROIDS 9", // text
+                63, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xff0000");
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "SUPER MEGA\nBLASTEROIDS 9", // text
+                63, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xff0000");
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "SUPER MEGA\nBLASTEROIDS 9", // text
+                63, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xff0000");
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "SUPER MEGA\nBLASTEROIDS 9", // text
+                63, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xff0000");
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "SUPER MEGA\nBLASTEROIDS 9", // text
+                63, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xff0000");
+    }
 }

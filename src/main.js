@@ -18,6 +18,8 @@ const config = {
             debug: true,
         },
     },
-    scene: [Menu, Play],
+    backgroundColor: "#4444aa",
+    scene: [Load, Menu, Play, Scores, Credits],
 };
+
 const game = new Phaser.Game(config);

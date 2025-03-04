@@ -1,55 +1,46 @@
 class Load extends Phaser.Scene {
     constructor() {
-        super("LoadScene");
+        super("loadScene");
     }
     init() {}
     preload() {
         this.load.path = "./assets/";
         // Load Sprites
-        this.load.spritesheet("slug", "slug.png", {
-            frameWidth: 8,
-            frameHeight: 8,
-        });
 
         // Load Sounds
-        this.load.audio("backgroundMusic", "song.wav");
+        // this.load.audio("backgroundMusic", "song.wav");
+
+        // Load Font
+        this.load.bitmapFont("VCROSDMono", "VCROSDMono.png", "VCROSDMono.xml");
     }
     create() {
-        // width: 720,
-        // height: 540,
         this.scale.setGameSize(720, 540);
 
-        // start text
-        let menuConfig = {
-            fontFamily: "Courier New",
-            fontSize: "16px",
-            // backgroundColor: "#00FF00",
-            color: "#FFFFFF",
-            align: "center",
-            padding: {
-                top: 5,
-                bottom: 5,
-            },
-            fixedWidth: 0,
-        };
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "SUPER MEGA\nBLASTEROIDS 9", // text
+                63, // size
+                1 // align
+            )
+            .setOrigin(0.5);
 
         this.add
-            .text(
-                game.config.width / 2,
-                game.config.height / 4,
-                "Super Mega Blasteroids 9",
-                menuConfig
+            .bitmapText(
+                game.config.width / 2, // x
+                (game.config.height / 3) * 2, // y
+                "VCROSDMono", // key
+                "LOADING...", // text
+                42, // size
+                1 // align
             )
             .setOrigin(0.5);
-        this.add
-            .text(
-                game.config.width / 2,
-                (game.config.height * 2) / 3,
-                "Loading...",
-                menuConfig
-            )
-            .setOrigin(0.5);
-        this.scene.start("menuScene");
     }
-    update() {}
+    update() {
+        this.time.delayedCall(300, () => {
+            this.scene.start("menuScene");
+        });
+    }
 }
