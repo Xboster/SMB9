@@ -50,9 +50,9 @@ class Load extends Phaser.Scene {
             .setCharacterTint(0, -1, true, "0xFFFFFF");
     }
     update() {
-        this.time.delayedCall(30, () => {
+        this.time.delayedCall(300, () => {
             this.scene.start("menuScene");
         });
-        this.background.tilePositionY -= 0;
+        // this.background.tilePositionY -= 1;
     }
 }

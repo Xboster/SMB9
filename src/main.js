@@ -24,3 +24,9 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+
+// input
+let keys, keyLEFT, keyRIGHT;
+
+// background
+let tilePOS = 0;
