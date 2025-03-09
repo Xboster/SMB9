@@ -4,19 +4,24 @@ class Load extends Phaser.Scene {
     }
     init() {}
     preload() {
-        this.load.path = "./assets/";
-        // Load Sprites
-
-        // Load Sounds
+        // Load Audio
+        this.load.path = "./assets/audio/";
         // this.load.audio("backgroundMusic", "song.wav");
+        this.load.audio("sfx-shoot", "Laser_shoot 42.wav");
 
-        // Load Font
-        this.load.bitmapFont(
-            "VCROSDMono",
-            "font/VCROSDMono.png",
-            "font/VCROSDMono.xml"
-        );
-        this.load.image("background", "img/stars.png");
+        // Load Fonts
+        this.load.path = "./assets/font/";
+        this.load.bitmapFont("VCROSDMono", "VCROSDMono.png", "VCROSDMono.xml");
+
+        // Load Images
+        this.load.path = "./assets/img/";
+        this.load.spritesheet("ship", "ship.png", {
+            frameWidth: 48,
+            frameHeight: 48,
+        });
+
+        this.load.image("background", "stars.png");
+        this.load.image("blast", "blast.png");
     }
     create() {
         // this.scale.setGameSize(720, 540);

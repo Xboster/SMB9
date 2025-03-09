@@ -65,7 +65,7 @@ class Menu extends Phaser.Scene {
             this.scene.start("menuScene");
         });
         this.input.keyboard.on("keydown-TWO", () => {
-            this.scene.start("playScene");
+            this.scene.start("playScene", {backgroundY: this.background.tilePositionY});
         });
         this.input.keyboard.on("keydown-THREE", () => {
             this.scene.start("scoresScene");
@@ -73,8 +73,19 @@ class Menu extends Phaser.Scene {
         this.input.keyboard.on("keydown-FOUR", () => {
             this.scene.start("creditsScene");
         });
+
+        // this.input.keyboard.on("keydown-SPACE", () => {
+        //     // this.scene.start("creditsScene");
+        //     this.sound.play("sfx-shoot");
+        // });
+        this.timeSinceMove = 0;
     }
-    update() {
-        this.background.tilePositionY -= 1 / 3;
+    update(time, delta) {
+        this.timeSinceMove += delta;
+        if (this.timeSinceMove > 10) {
+            this.background.tilePositionY -= 1;
+            this.timeSinceMove = 0;
+            console.log(this.background.tilePositionY);
+        }
     }
 }

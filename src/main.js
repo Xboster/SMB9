@@ -14,9 +14,32 @@ const config = {
         pixelArt: true,
     },
     physics: {
-        default: "arcade",
-        arcade: {
-            debug: true,
+        default: "matter",
+        matter: {
+            plugins: {
+                wrap: true,
+            },
+            gravity: {
+                x: 0,
+                y: 0,
+            },
+            setBounds: {
+                x: 0,
+                y: 0,
+                width: 720,
+                height: 540,
+                thickness: 64,
+                left: false,
+                right: false,
+                top: false,
+                bottom: false,
+            },
+
+            debug: {
+                showAxes: true,
+                showAngleIndicator: true,
+                showBody: true,
+            },
         },
     },
     backgroundColor: "#4444aa",
