@@ -27,19 +27,6 @@ class Play extends Phaser.Scene {
             .setOrigin(0.5)
             // .setDropShadow(1, 2, "0xFF0000", 123)
             .setCharacterTint(0, -1, true, "0xff0000");
-        // SCENE CHANGER
-        this.input.keyboard.on("keydown-ONE", () => {
-            this.scene.start("menuScene");
-        });
-        this.input.keyboard.on("keydown-TWO", () => {
-            this.scene.start("playScene");
-        });
-        this.input.keyboard.on("keydown-THREE", () => {
-            this.scene.start("scoresScene");
-        });
-        this.input.keyboard.on("keydown-FOUR", () => {
-            this.scene.start("creditsScene");
-        });
 
         // input ------------------------------------------------------------------
         // this.cursors = this.input.keyboard.createCursorKeys();
@@ -125,7 +112,6 @@ class Play extends Phaser.Scene {
         if (this.timeSinceMove > 10) {
             this.background.tilePositionY -= 1;
             this.timeSinceMove = 0;
-            console.log(this.background.tilePositionY);
         }
 
         // ship movement

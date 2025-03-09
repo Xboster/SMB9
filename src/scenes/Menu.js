@@ -13,7 +13,7 @@ class Menu extends Phaser.Scene {
             .tileSprite(0, 0, 1024, 1024, "background")
             .setOrigin(0);
 
-        var option = ["Play", "Scores", "Credits"];
+        this.option = ["Play ", "Scores ", "Credits "];
         // TITLE
         this.add
             .bitmapText(
@@ -29,63 +29,99 @@ class Menu extends Phaser.Scene {
             .setCharacterTint(0, -1, true, "0xFFFFFF");
 
         // PLAY
-        this.add
+        this.playTxt = this.add
             .bitmapText(
                 game.config.width / 3 + 21, // x
                 (game.config.height / 10) * 6, // y
                 "VCROSDMono", // key
-                option[0], // text
+                this.option[0], // text
                 42 // size
             )
             .setCharacterTint(0, -1, true, "0xFFFFFF");
 
         // SCORES
-        this.add
+        this.scoresTxt = this.add
             .bitmapText(
                 game.config.width / 3 + 21, // x
                 (game.config.height / 10) * 7, // y
                 "VCROSDMono", // key
-                option[1], // text
+                this.option[1], // text
                 42 // size
             )
             .setCharacterTint(0, -1, true, "0xFFFFFF");
 
         // CREDITS
-        this.add
+        this.creditsTxt = this.add
             .bitmapText(
                 game.config.width / 3 + 21, // x
                 (game.config.height / 10) * 8, // y
                 "VCROSDMono", // key
-                option[2], // text
+                this.option[2], // text
                 42 // size
             )
             .setCharacterTint(0, -1, true, "0xFFFFFF");
 
-        this.input.keyboard.on("keydown-ONE", () => {
-            this.scene.start("menuScene");
-        });
-        this.input.keyboard.on("keydown-TWO", () => {
-            this.scene.start("playScene", {backgroundY: this.background.tilePositionY});
-        });
-        this.input.keyboard.on("keydown-THREE", () => {
-            this.scene.start("scoresScene");
-        });
-        this.input.keyboard.on("keydown-FOUR", () => {
-            this.scene.start("creditsScene");
+        keys = this.input.keyboard.addKeys({
+            W: Phaser.Input.Keyboard.KeyCodes.W,
+            S: Phaser.Input.Keyboard.KeyCodes.S,
+            SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
         });
 
-        // this.input.keyboard.on("keydown-SPACE", () => {
-        //     // this.scene.start("creditsScene");
-        //     this.sound.play("sfx-shoot");
-        // });
         this.timeSinceMove = 0;
+        this.menuSelection = 0;
     }
     update(time, delta) {
         this.timeSinceMove += delta;
         if (this.timeSinceMove > 10) {
             this.background.tilePositionY -= 1;
             this.timeSinceMove = 0;
-            console.log(this.background.tilePositionY);
+            // console.log(this.background.tilePositionY);
+        }
+
+        // this.playTxt = this.option[0];
+        // this.scoresTxt = this.option[1];
+        // this.creditsTxt = this.option[2];
+
+        if (Phaser.Input.Keyboard.JustDown(keys.W)) {
+            if (this.menuSelection > 0) {
+                this.menuSelection -= 1;
+                // console.log(this.option[this.menuSelection]);
+            }
+        }
+        if (Phaser.Input.Keyboard.JustDown(keys.S)) {
+            if (this.menuSelection < this.option.length - 1) {
+                this.menuSelection += 1;
+                // console.log(this.option[this.menuSelection]);
+            }
+        }
+        if (this.menuSelection == 0) {
+            this.playTxt.setText(">Play");
+        } else {
+            this.playTxt.setText(" Play");
+        }
+        if (this.menuSelection == 1) {
+            this.scoresTxt.setText(">Scores");
+        } else {
+            this.scoresTxt.setText(" Scores");
+        }
+        if (this.menuSelection == 2) {
+            this.creditsTxt.setText(">Credits");
+        } else {
+            this.creditsTxt.setText(" Credits");
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
+            if (this.menuSelection == 0) {
+                this.scene.start("playScene", {
+                    backgroundY: this.background.tilePositionY,
+                });
+            }
+            if (this.menuSelection == 1) {
+                this.scene.start("scoresScene");
+            }
+            if (this.menuSelection == 2) {
+                this.scene.start("creditsScene");
+            }
         }
     }
 }

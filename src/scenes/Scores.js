@@ -5,17 +5,21 @@ class Scores extends Phaser.Scene {
     init() {}
     preload() {}
     create() {
-        this.input.keyboard.on("keydown-ONE", () => {
+        this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 2, // y
+                "VCROSDMono", // key
+                "in Scores Scene", // text
+                21, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xff0000");
+
+        this.input.keyboard.on("keydown-SPACE", () => {
             this.scene.start("menuScene");
-        });
-        this.input.keyboard.on("keydown-TWO", () => {
-            this.scene.start("playScene");
-        });
-        this.input.keyboard.on("keydown-THREE", () => {
-            this.scene.start("scoresScene");
-        });
-        this.input.keyboard.on("keydown-FOUR", () => {
-            this.scene.start("creditsScene");
         });
     }
     update() {}
