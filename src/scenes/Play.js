@@ -15,20 +15,33 @@ class Play extends Phaser.Scene {
         this.background.tilePositionY = data.backgroundY;
         this.timeSinceMove = 0;
         // console.log(data.backgroundY);
-        // TEXT
+        // UI TEXT
+
         this.add
             .bitmapText(
-                game.config.width / 2, // x
-                game.config.height / 2, // y
+                20, // x
+                10, // y
                 "VCROSDMono", // key
-                "in Play Scene", // text
+                "score:_______", // text
                 21, // size
                 1 // align
             )
-            .setOrigin(0.5)
+            .setOrigin(0)
             // .setDropShadow(1, 2, "0xFF0000", 123)
-            .setCharacterTint(0, -1, true, "0xff0000");
+            .setCharacterTint(0, -1, true, "0x00ff00");
 
+        // UI Lives
+        this.add
+            .image(game.config.width - 20, 20, "ship")
+            .setAngle(-90)
+            .setScale(1 / 3)
+            .setTint(0xff0000);
+
+        this.add
+            .image(game.config.width - 40, 20, "ship")
+            .setAngle(-90)
+            .setScale(1 / 3)
+            .setTint(0xff0000);
         // input ------------------------------------------------------------------
         // this.cursors = this.input.keyboard.createCursorKeys();
         keys = this.input.keyboard.addKeys({
@@ -61,30 +74,21 @@ class Play extends Phaser.Scene {
         this.asteroidCollisionCategory = this.matter.world.nextCategory();
 
         // add ship ------------------------------------------------------------------
-        this.ship = this.matter.add.sprite(
-            game.config.width / 2,
-            (game.config.height / 20) * 19,
-            "ship"
-        );
-
-        this.ship
+        this.ship = new Ship(this.matter.world, 0, 0, "ship", {})
             .setPolygon(24, 3, {
                 isSensor: true,
-                restitution: 1,
+                restitution: 0.5,
                 wrapBounds: wrapBounds,
             })
             .setOrigin(0.41, 0.5);
-        this.ship.body.angle = Math.PI;
-        this.ship.setAngle(-90);
-        this.ship.setFrictionAir(0.1);
-        this.ship.setMass(25);
-        this.ship.setFixedRotation();
-        this.ship.setAngularVelocity(0);
+
         this.ship.setCollisionCategory(this.shipCollisionCategory);
         this.ship.setCollidesWith([
             this.asteroidCollisionCategory,
             this.enemiesCollisionCategory,
         ]);
+
+        this.ship.spawn(game.config.width / 2, (game.config.height / 20) * 19);
 
         // blasts ------------------------------------------------------------------
         this.blasts = [];
@@ -112,7 +116,7 @@ class Play extends Phaser.Scene {
         });
         // asteroids ------------------------------------------------------------------
         this.asteroids = [];
-        for (let i = 0; i < 64; i++) {
+        for (let i = 0; i < 512; i++) {
             const asteroid = new Asteroid(this.matter.world, 0, 0, "asteroid", {
                 isSensor: true,
                 shape: {
@@ -134,7 +138,7 @@ class Play extends Phaser.Scene {
         this.input.on("pointerdown", (pointer) => {
             const x = pointer.x;
             const y = pointer.y;
-            console.log(`Clicked at: x=${x}, y=${y}`);
+            // console.log(`Clicked at: x=${x}, y=${y}`);
 
             const asteroid = this.asteroids.find(
                 (asteroid) => !asteroid.active
@@ -145,33 +149,14 @@ class Play extends Phaser.Scene {
         });
     }
     update(time, delta) {
-        // background movement
+        // console.log("FPS:", this.game.loop.actualFps);
+        // console.log("Delta:", this.game.loop.delta);
+
+        // background scrolling
         this.timeSinceMove += delta;
         if (this.timeSinceMove > 10) {
             this.background.tilePositionY -= 1;
             this.timeSinceMove = 0;
-        }
-
-        // ship movement
-        if (keys.W.isDown) {
-            this.ship.thrust(0.01);
-            // console.log(this.ship.angle);
-        }
-        if (keys.S.isDown) {
-            this.ship.thrust(-0.01);
-            // console.log(this.ship.angle);
-        }
-        if (keys.A.isDown) {
-            this.ship.thrustLeft(0.01);
-        }
-        if (keys.D.isDown) {
-            this.ship.thrustRight(0.01);
-        }
-
-        if (keys.Q.isDown) {
-            this.ship.setAngularVelocity(-0.1);
-        } else if (keys.E.isDown) {
-            this.ship.setAngularVelocity(0.1);
         }
     }
 }

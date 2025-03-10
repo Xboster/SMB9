@@ -1,12 +1,6 @@
-class Asteroid extends Phaser.Physics.Matter.Sprite {
+class Ship extends Phaser.Physics.Matter.Sprite {
     constructor(world, x, y, texture, options) {
         super(world, x, y, texture, null, options);
-
-        this.setFriction(0);
-        this.setFrictionAir(0);
-        this.setFixedRotation();
-        this.setActive(false);
-        this.setVisible(false);
 
         this.scene.add.existing(this);
 
@@ -15,17 +9,19 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
         this.world.on("collisionstart", this.onCollision, this);
     }
 
-    spawn(x, y, angle, speed) {
+    spawn(x, y) {
         this.world.add(this.body);
 
         this.setPosition(x, y);
         this.setActive(true);
         this.setVisible(true);
 
-        this.setVelocityX(speed * Math.cos(angle));
-        this.setVelocityY(speed * Math.sin(angle));
-
-        this.lifespan = 5000;
+        this.body.angle = Math.PI;
+        this.setAngle(-90);
+        this.setFrictionAir(0.2);
+        this.setMass(25);
+        this.setFixedRotation();
+        this.setAngularVelocity(0);
     }
 
     onCollision(event) {
@@ -33,12 +29,11 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
             if (pair.bodyA === this.body || pair.bodyB === this.body) {
                 const otherBody =
                     pair.bodyA === this.body ? pair.bodyB : pair.bodyA;
-
                 if (
                     otherBody.collisionFilter.category ===
-                    this.scene.blastCollisionCategory
+                    this.scene.asteroidCollisionCategory
                 ) {
-                    this.scene.sound.setVolume(0.7).play("sfx-explosion2");
+                    this.scene.sound.setVolume(0.5).play("sfx-explosion1");
                     this.setActive(false);
                     this.setVisible(false);
                     this.world.remove(this.body, true);
@@ -49,13 +44,26 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
 
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
+        // ship movement
+        if (keys.W.isDown) {
+            this.thrust(0.01);
+            // console.log(this.angle);
+        }
+        if (keys.S.isDown) {
+            this.thrust(-0.01);
+            // console.log(this.angle);
+        }
+        if (keys.A.isDown) {
+            this.thrustLeft(0.01);
+        }
+        if (keys.D.isDown) {
+            this.thrustRight(0.01);
+        }
 
-        this.lifespan -= delta;
-
-        if (this.lifespan <= 0) {
-            this.setActive(false);
-            this.setVisible(false);
-            this.world.remove(this.body, true);
+        if (keys.Q.isDown) {
+            this.setAngularVelocity(-0.1);
+        } else if (keys.E.isDown) {
+            this.setAngularVelocity(0.1);
         }
     }
 }

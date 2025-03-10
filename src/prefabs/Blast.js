@@ -32,7 +32,6 @@ class Blast extends Phaser.Physics.Matter.Sprite {
     onCollision(event) {
         event.pairs.forEach((pair) => {
             if (pair.bodyA === this.body || pair.bodyB === this.body) {
-                console.log("Collision detected BLAST");
                 const otherBody =
                     pair.bodyA === this.body ? pair.bodyB : pair.bodyA;
 
