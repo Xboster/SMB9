@@ -2,6 +2,7 @@ class Blast extends Phaser.Physics.Matter.Sprite {
     constructor(world, x, y, texture, options) {
         super(world, x, y, texture, null, options);
 
+        this.setFriction(0);
         this.setFrictionAir(0);
         this.setFixedRotation();
         this.setActive(false);
@@ -10,6 +11,8 @@ class Blast extends Phaser.Physics.Matter.Sprite {
         this.scene.add.existing(this);
 
         this.world.remove(this.body, true);
+
+        this.world.on("collisionstart", this.onCollision, this);
     }
 
     fire(x, y, angle, speed) {
@@ -24,6 +27,25 @@ class Blast extends Phaser.Physics.Matter.Sprite {
         this.setVelocityY(speed * Math.sin(angle));
 
         this.lifespan = 800;
+    }
+
+    onCollision(event) {
+        event.pairs.forEach((pair) => {
+            if (pair.bodyA === this.body || pair.bodyB === this.body) {
+                console.log("Collision detected BLAST");
+                const otherBody =
+                    pair.bodyA === this.body ? pair.bodyB : pair.bodyA;
+
+                if (
+                    otherBody.collisionFilter.category ===
+                    this.scene.asteroidCollisionCategory
+                ) {
+                    this.setActive(false);
+                    this.setVisible(false);
+                    this.world.remove(this.body, true);
+                }
+            }
+        });
     }
 
     preUpdate(time, delta) {

@@ -58,7 +58,7 @@ class Play extends Phaser.Scene {
         this.enemiesCollisionCategory = this.matter.world.nextCategory();
         this.shipCollisionCategory = this.matter.world.nextCategory();
         this.blastCollisionCategory = this.matter.world.nextCategory();
-        this.asteroidsCollisionCategory = this.matter.world.nextCategory();
+        this.asteroidCollisionCategory = this.matter.world.nextCategory();
 
         // add ship ------------------------------------------------------------------
         this.ship = this.matter.add.sprite(
@@ -68,8 +68,9 @@ class Play extends Phaser.Scene {
         );
 
         this.ship
-            .setPolygon(32, 3, {
-                restitution: 0.1,
+            .setPolygon(24, 3, {
+                isSensor: true,
+                restitution: 1,
                 wrapBounds: wrapBounds,
             })
             .setOrigin(0.41, 0.5);
@@ -79,42 +80,53 @@ class Play extends Phaser.Scene {
         this.ship.setMass(25);
         this.ship.setFixedRotation();
         this.ship.setAngularVelocity(0);
+        this.ship.setCollisionCategory(this.shipCollisionCategory);
+        this.ship.setCollidesWith([
+            this.asteroidCollisionCategory,
+            this.enemiesCollisionCategory,
+        ]);
+
         // blasts ------------------------------------------------------------------
         this.blasts = [];
         for (let i = 0; i < 64; i++) {
             const blast = new Blast(this.matter.world, 0, 0, "blast", {
-                wrapBounds,
+                isSensor: true,
+                wrapBounds: wrapBounds,
             });
 
             blast.setCollisionCategory(this.blastCollisionCategory);
             blast.setCollidesWith([
                 this.enemiesCollisionCategory,
-                this.asteroidsCollisionCategory,
+                this.asteroidCollisionCategory,
             ]);
-            blast.setOnCollide(this.blastVsEnemy);
 
             this.blasts.push(blast);
         }
 
         this.input.keyboard.on("keydown-SPACE", () => {
-            this.sound.play("sfx-shoot");
-
             const blast = this.blasts.find((blast) => !blast.active);
-            if (blast) {
+            if (this.ship.active && blast) {
                 blast.fire(this.ship.x, this.ship.y, this.ship.rotation, 10);
+                this.sound.play("sfx-shoot");
             }
         });
         // asteroids ------------------------------------------------------------------
         this.asteroids = [];
         for (let i = 0; i < 64; i++) {
-            const asteroid = new Asteroid(this.matter.world, 0, 0, "asteroid");
+            const asteroid = new Asteroid(this.matter.world, 0, 0, "asteroid", {
+                isSensor: true,
+                shape: {
+                    type: "polygon",
+                    radius: 16,
+                    sides: 6,
+                },
+            });
 
             asteroid.setCollisionCategory(this.asteroidCollisionCategory);
             asteroid.setCollidesWith([
-                this.enemiesCollisionCategory,
-                this.asteroidsCollisionCategory,
+                this.shipCollisionCategory,
+                this.blastCollisionCategory,
             ]);
-            asteroid.setOnCollide(this.asteroidVsEnemy);
 
             this.asteroids.push(asteroid);
         }
