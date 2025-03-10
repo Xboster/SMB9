@@ -1,16 +1,22 @@
 class Ship extends Phaser.Physics.Matter.Sprite {
-    constructor(world, x, y, texture, options) {
-        super(world, x, y, texture, null, options);
+    constructor(scene, x, y, texture, options) {
+        super(scene.matter.world, x, y, texture, null, options);
+
+        this.setFriction(0);
+        this.setFrictionAir(0);
+        this.setFixedRotation();
+        this.setActive(false);
+        this.setVisible(false);
 
         this.scene.add.existing(this);
 
-        this.world.remove(this.body, true);
+        this.scene.matter.world.remove(this.body, true);
 
-        this.world.on("collisionstart", this.onCollision, this);
+        this.scene.matter.world.on("collisionstart", this.onCollision, this);
     }
 
     spawn(x, y) {
-        this.world.add(this.body);
+        this.scene.matter.world.add(this.body);
 
         this.setPosition(x, y);
         this.setActive(true);

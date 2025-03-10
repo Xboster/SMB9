@@ -1,7 +1,6 @@
 class Play extends Phaser.Scene {
     constructor() {
         super("playScene");
-        // this.eventEmitter = new Phaser.Events.EventEmitter();
     }
     init() {
         this.fixed = true;
@@ -74,7 +73,7 @@ class Play extends Phaser.Scene {
         this.asteroidCollisionCategory = this.matter.world.nextCategory();
 
         // add ship ------------------------------------------------------------------
-        this.ship = new Ship(this.matter.world, 0, 0, "ship", {})
+        this.ship = new Ship(this, 0, 0, "ship", {})
             .setPolygon(24, 3, {
                 isSensor: true,
                 restitution: 0.5,
@@ -92,8 +91,8 @@ class Play extends Phaser.Scene {
 
         // blasts ------------------------------------------------------------------
         this.blasts = [];
-        for (let i = 0; i < 64; i++) {
-            const blast = new Blast(this.matter.world, 0, 0, "blast", {
+        for (let i = 0; i < 512; i++) {
+            const blast = new Blast(this, 0, 0, "blast", {
                 isSensor: true,
                 wrapBounds: wrapBounds,
             });
@@ -114,10 +113,11 @@ class Play extends Phaser.Scene {
                 this.sound.play("sfx-shoot");
             }
         });
+
         // asteroids ------------------------------------------------------------------
         this.asteroids = [];
         for (let i = 0; i < 512; i++) {
-            const asteroid = new Asteroid(this.matter.world, 0, 0, "asteroid", {
+            const asteroid = new Asteroid(this, 0, 0, "asteroid", {
                 isSensor: true,
                 shape: {
                     type: "polygon",
@@ -134,6 +134,7 @@ class Play extends Phaser.Scene {
 
             this.asteroids.push(asteroid);
         }
+
         // spawn asteroid on click
         this.input.on("pointerdown", (pointer) => {
             const x = pointer.x;
@@ -147,6 +148,8 @@ class Play extends Phaser.Scene {
                 asteroid.spawn(x, y, (Math.PI * 2) / 4, 3);
             }
         });
+
+        this.spawnDelay = 0;
     }
     update(time, delta) {
         // console.log("FPS:", this.game.loop.actualFps);
@@ -157,6 +160,39 @@ class Play extends Phaser.Scene {
         if (this.timeSinceMove > 10) {
             this.background.tilePositionY -= 1;
             this.timeSinceMove = 0;
+        }
+
+        //TEST
+        // if (keys.SPACE.isDown) {
+        //     const blast = this.blasts.find((blast) => !blast.active);
+        //     if (this.ship.active && blast) {
+        //         blast.fire(this.ship.x, this.ship.y, this.ship.rotation, 32);
+        //         this.sound.play("sfx-shoot");
+        //     }
+        // }
+
+        // asteroid random spawn
+        if (this.ship.active && this.spawnDelay > 500) {
+            const asteroid = this.asteroids.find(
+                (asteroid) => !asteroid.active
+            );
+            if (asteroid) {
+                asteroid.spawn(
+                    Math.random() * game.config.width,
+                    -100,
+                    (Math.PI * 2) / 4,
+                    3
+                );
+                this.spawnDelay = 0;
+            }
+        }
+        this.spawnDelay += delta;
+
+        if (!this.ship.active) {
+            if (keys.SPACE.isDown) {
+                this.matter.world.resetCollisionIDs();
+                this.scene.start("menuScene");
+            }
         }
     }
 }
