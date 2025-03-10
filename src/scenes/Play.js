@@ -13,6 +13,7 @@ class Play extends Phaser.Scene {
             .tileSprite(0, 0, 1024, 1024, "background")
             .setOrigin(0, 0);
         this.background.tilePositionY = data.backgroundY;
+        this.timeSinceMove = 0;
         // console.log(data.backgroundY);
         // TEXT
         this.add
@@ -103,8 +104,33 @@ class Play extends Phaser.Scene {
                 blast.fire(this.ship.x, this.ship.y, this.ship.rotation, 10);
             }
         });
+        // asteroids ------------------------------------------------------------------
+        this.asteroids = [];
+        for (let i = 0; i < 64; i++) {
+            const asteroid = new Asteroid(this.matter.world, 0, 0, "asteroid");
 
-        this.timeSinceMove = 0;
+            asteroid.setCollisionCategory(this.asteroidCollisionCategory);
+            asteroid.setCollidesWith([
+                this.enemiesCollisionCategory,
+                this.asteroidsCollisionCategory,
+            ]);
+            asteroid.setOnCollide(this.asteroidVsEnemy);
+
+            this.asteroids.push(asteroid);
+        }
+        // spawn asteroid on click
+        this.input.on("pointerdown", (pointer) => {
+            const x = pointer.x;
+            const y = pointer.y;
+            console.log(`Clicked at: x=${x}, y=${y}`);
+
+            const asteroid = this.asteroids.find(
+                (asteroid) => !asteroid.active
+            );
+            if (asteroid) {
+                asteroid.spawn(x, y, (Math.PI * 2) / 4, 3);
+            }
+        });
     }
     update(time, delta) {
         // background movement

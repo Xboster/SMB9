@@ -15,13 +15,14 @@ class Load extends Phaser.Scene {
 
         // Load Images
         this.load.path = "./assets/img/";
+
         this.load.spritesheet("ship", "ship.png", {
             frameWidth: 48,
             frameHeight: 48,
         });
-
-        this.load.image("background", "stars.png");
+        this.load.image("asteroid", "asteroid.png");
         this.load.image("blast", "blast.png");
+        this.load.image("background", "stars.png");
     }
     create() {
         // this.scale.setGameSize(720, 540);
