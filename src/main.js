@@ -47,7 +47,8 @@ const config = {
     fps: {
         min: 30,
         target: 60,
-        forceSetTimeOut: true,
+        limit: 60,
+        // forceSetTimeOut: true,
     },
 };
 
