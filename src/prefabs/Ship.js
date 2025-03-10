@@ -18,8 +18,8 @@ class Ship extends Phaser.Physics.Matter.Sprite {
 
         this.body.angle = Math.PI;
         this.setAngle(-90);
-        this.setFrictionAir(0.2);
-        this.setMass(25);
+        this.setFrictionAir(0.1);
+        this.setMass(10);
         this.setFixedRotation();
         this.setAngularVelocity(0);
     }

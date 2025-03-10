@@ -44,6 +44,11 @@ const config = {
     },
     backgroundColor: "#4444aa",
     scene: [Load, Menu, Play, Scores, Credits],
+    fps: {
+        min: 30,
+        target: 60,
+        forceSetTimeOut: true,
+    },
 };
 
 const game = new Phaser.Game(config);
