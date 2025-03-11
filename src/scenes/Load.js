@@ -23,13 +23,15 @@ class Load extends Phaser.Scene {
             frameWidth: 48,
             frameHeight: 48,
         });
+        this.load.spritesheet("alien", "alien.png", {
+            frameWidth: 32,
+            frameHeight: 32,
+        });
         this.load.image("asteroid", "asteroid.png");
         this.load.image("blast", "blast.png");
         this.load.image("background", "stars.png");
     }
     create() {
-        // this.scale.setGameSize(720, 540);
-
         this.background = this.add
             .tileSprite(0, 0, 1024, 1024, "background")
             .setOrigin(0, 0);
@@ -57,6 +59,27 @@ class Load extends Phaser.Scene {
             )
             .setOrigin(0.5)
             .setCharacterTint(0, -1, true, "0xFFFFFF");
+
+        this.anims.create({
+            key: "idle",
+            frames: this.anims.generateFrameNumbers("alien", {
+                start: 0,
+                end: 1,
+            }),
+            frameRate: 10,
+            repeat: -1,
+        });
+
+        cursors = this.input.keyboard.createCursorKeys();
+        keys = this.input.keyboard.addKeys({
+            W: Phaser.Input.Keyboard.KeyCodes.W,
+            A: Phaser.Input.Keyboard.KeyCodes.A,
+            S: Phaser.Input.Keyboard.KeyCodes.S,
+            D: Phaser.Input.Keyboard.KeyCodes.D,
+            Q: Phaser.Input.Keyboard.KeyCodes.Q,
+            E: Phaser.Input.Keyboard.KeyCodes.E,
+            SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
+        });
     }
     update() {
         this.time.delayedCall(300, () => {

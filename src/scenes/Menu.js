@@ -5,6 +5,7 @@ class Menu extends Phaser.Scene {
     init() {}
     preload() {}
     create() {
+        this.input.mouse.disableContextMenu();
         // width: 720,
         // height: 540,
         // this.scale.setGameSize(720, 540);

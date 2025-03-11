@@ -1,4 +1,4 @@
-class Asteroid extends Phaser.Physics.Matter.Sprite {
+class Alien extends Phaser.Physics.Matter.Sprite {
     constructor(scene, x, y, texture, options) {
         super(scene.matter.world, x, y, texture, null, options);
 
@@ -38,15 +38,6 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
                     otherBody.collisionFilter.category ===
                     this.scene.blastCollisionCategory
                 ) {
-                    // spawn alien on asteroid
-                    const alien = this.scene.aliens.find(
-                        (alien) => !alien.active
-                    );
-                    if (alien) {
-                        alien.spawn(this.x, this.y, (Math.PI * 2) / 4, 3);
-                    }
-
-                    // hide and remove asteroid
                     this.scene.sound.setVolume(0.7).play("sfx-explosion2");
                     this.setActive(false);
                     this.setVisible(false);

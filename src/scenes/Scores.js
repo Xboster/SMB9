@@ -5,6 +5,8 @@ class Scores extends Phaser.Scene {
     init() {}
     preload() {}
     create() {
+        this.input.mouse.disableContextMenu();
+
         this.add
             .bitmapText(
                 game.config.width / 2, // x

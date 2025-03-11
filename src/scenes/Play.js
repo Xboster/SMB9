@@ -7,6 +7,7 @@ class Play extends Phaser.Scene {
     }
     preload() {}
     create(data) {
+        this.input.mouse.disableContextMenu();
         // background
         this.background = this.add
             .tileSprite(0, 0, 1024, 1024, "background")
@@ -41,17 +42,6 @@ class Play extends Phaser.Scene {
             .setAngle(-90)
             .setScale(1 / 3)
             .setTint(0xff0000);
-        // input ------------------------------------------------------------------
-        // this.cursors = this.input.keyboard.createCursorKeys();
-        keys = this.input.keyboard.addKeys({
-            W: Phaser.Input.Keyboard.KeyCodes.W,
-            A: Phaser.Input.Keyboard.KeyCodes.A,
-            S: Phaser.Input.Keyboard.KeyCodes.S,
-            D: Phaser.Input.Keyboard.KeyCodes.D,
-            Q: Phaser.Input.Keyboard.KeyCodes.Q,
-            E: Phaser.Input.Keyboard.KeyCodes.E,
-            SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
-        });
 
         // world bounds ------------------------------------------------------------------
         // this.matter.world.setBounds(
@@ -60,33 +50,19 @@ class Play extends Phaser.Scene {
         //     game.config.width,
         //     game.config.height
         // );
-        // this.matter.world.wrap(this.ship, 5);
 
-        const wrapBounds = {
-            min: { x: 0, y: 0 },
-            max: { x: game.config.width, y: game.config.height },
-        };
         // collisions
-        this.enemiesCollisionCategory = this.matter.world.nextCategory();
-        this.shipCollisionCategory = this.matter.world.nextCategory();
-        this.blastCollisionCategory = this.matter.world.nextCategory();
+        this.alienCollisionCategory = this.matter.world.nextCategory();
         this.asteroidCollisionCategory = this.matter.world.nextCategory();
+        this.blastCollisionCategory = this.matter.world.nextCategory();
+        this.shipCollisionCategory = this.matter.world.nextCategory();
 
         // add ship ------------------------------------------------------------------
         this.ship = new Ship(this, 0, 0, "ship", {})
-            .setPolygon(24, 3, {
-                isSensor: true,
-                restitution: 0.5,
-                wrapBounds: wrapBounds,
-            })
+            .setPolygon(28, 3)
             .setOrigin(0.41, 0.5);
 
         this.ship.setCollisionCategory(this.shipCollisionCategory);
-        this.ship.setCollidesWith([
-            this.asteroidCollisionCategory,
-            this.enemiesCollisionCategory,
-        ]);
-
         this.ship.spawn(game.config.width / 2, (game.config.height / 20) * 19);
 
         // blasts ------------------------------------------------------------------
@@ -94,16 +70,17 @@ class Play extends Phaser.Scene {
         for (let i = 0; i < 512; i++) {
             const blast = new Blast(this, 0, 0, "blast", {
                 isSensor: true,
-                wrapBounds: wrapBounds,
             });
 
             blast.setCollisionCategory(this.blastCollisionCategory);
             blast.setCollidesWith([
-                this.enemiesCollisionCategory,
+                this.alienCollisionCategory,
                 this.asteroidCollisionCategory,
             ]);
 
             this.blasts.push(blast);
+
+            blast.preFX.addGlow(0xffff00, 1, 0, false);
         }
 
         this.input.keyboard.on("keydown-SPACE", () => {
@@ -114,6 +91,33 @@ class Play extends Phaser.Scene {
             }
         });
 
+        // aliens ------------------------------------------------------------------
+        this.aliens = [];
+        for (let i = 0; i < 512; i++) {
+            const alien = new Alien(this, 0, 0, "alien", {
+                isSensor: true,
+                shape: {
+                    type: "rectangle",
+                    width: 24,
+                    height: 20,
+                },
+                chamfer: {
+                    radius: [8, 8, 0, 0],
+                },
+            }).setOrigin(0.5, 0.5);
+
+            alien.anims.play("idle");
+
+            alien.preFX.addGlow(0x00ff00, 1, 0, false);
+
+            alien.setCollisionCategory(this.alienCollisionCategory);
+            alien.setCollidesWith([
+                this.shipCollisionCategory,
+                // this.blastCollisionCategory,
+            ]);
+
+            this.aliens.push(alien);
+        }
         // asteroids ------------------------------------------------------------------
         this.asteroids = [];
         for (let i = 0; i < 512; i++) {
@@ -141,15 +145,24 @@ class Play extends Phaser.Scene {
             const y = pointer.y;
             // console.log(`Clicked at: x=${x}, y=${y}`);
 
-            const asteroid = this.asteroids.find(
-                (asteroid) => !asteroid.active
-            );
-            if (asteroid) {
-                asteroid.spawn(x, y, (Math.PI * 2) / 4, 3);
+            if (pointer.leftButtonDown()) {
+                const asteroid = this.asteroids.find(
+                    (asteroid) => !asteroid.active
+                );
+                if (asteroid) {
+                    asteroid.spawn(x, y, (Math.PI * 2) / 4, 3);
+                }
+            }
+            if (pointer.rightButtonDown()) {
+                const alien = this.aliens.find((alien) => !alien.active);
+                if (alien) {
+                    alien.spawn(x, y, (Math.PI * 2) / 4, 3);
+                }
             }
         });
 
-        this.spawnDelay = 0;
+        this.lastSpawned = 0;
+        this.spawnInterval = 500;
     }
     update(time, delta) {
         // console.log("FPS:", this.game.loop.actualFps);
@@ -162,7 +175,7 @@ class Play extends Phaser.Scene {
             this.timeSinceMove = 0;
         }
 
-        //TEST
+        // TEST;
         // if (keys.SPACE.isDown) {
         //     const blast = this.blasts.find((blast) => !blast.active);
         //     if (this.ship.active && blast) {
@@ -172,21 +185,23 @@ class Play extends Phaser.Scene {
         // }
 
         // asteroid random spawn
-        if (this.ship.active && this.spawnDelay > 500) {
+        if (this.ship.active && this.lastSpawned > this.spawnInterval + 200) {
             const asteroid = this.asteroids.find(
                 (asteroid) => !asteroid.active
             );
             if (asteroid) {
                 asteroid.spawn(
-                    Math.random() * game.config.width,
+                    asteroid.width / 2 +
+                        Math.random() * (game.config.width - asteroid.width),
                     -100,
                     (Math.PI * 2) / 4,
                     3
                 );
-                this.spawnDelay = 0;
+                this.lastSpawned = 0;
+                if (this.spawnInterval > 0) this.spawnInterval -= 10;
             }
         }
-        this.spawnDelay += delta;
+        this.lastSpawned += delta;
 
         if (!this.ship.active) {
             if (keys.SPACE.isDown) {

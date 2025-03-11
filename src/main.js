@@ -16,9 +16,6 @@ const config = {
     physics: {
         default: "matter",
         matter: {
-            plugins: {
-                wrap: true,
-            },
             gravity: {
                 x: 0,
                 y: 0,
@@ -29,17 +26,17 @@ const config = {
                 width: 720,
                 height: 540,
                 thickness: 64,
-                left: false,
-                right: false,
-                top: false,
-                bottom: false,
+                left: true,
+                right: true,
+                top: true,
+                bottom: true,
             },
 
-            debug: {
-                showAxes: true,
-                showAngleIndicator: true,
-                showBody: true,
-            },
+            // debug: {
+            //     // showAxes: true,
+            //     showAngleIndicator: true,
+            //     showBody: true,
+            // },
         },
     },
     backgroundColor: "#4444aa",
@@ -55,7 +52,7 @@ const config = {
 const game = new Phaser.Game(config);
 
 // input
-let keys, keyLEFT, keyRIGHT;
+let keys, cursors;
 
 // background
 let tilePOS = 0;

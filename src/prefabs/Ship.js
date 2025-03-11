@@ -2,9 +2,6 @@ class Ship extends Phaser.Physics.Matter.Sprite {
     constructor(scene, x, y, texture, options) {
         super(scene.matter.world, x, y, texture, null, options);
 
-        this.setFriction(0);
-        this.setFrictionAir(0);
-        this.setFixedRotation();
         this.setActive(false);
         this.setVisible(false);
 
@@ -24,6 +21,7 @@ class Ship extends Phaser.Physics.Matter.Sprite {
 
         this.body.angle = Math.PI;
         this.setAngle(-90);
+        this.setFriction(0);
         this.setFrictionAir(0.1);
         this.setMass(10);
         this.setFixedRotation();
@@ -37,7 +35,9 @@ class Ship extends Phaser.Physics.Matter.Sprite {
                     pair.bodyA === this.body ? pair.bodyB : pair.bodyA;
                 if (
                     otherBody.collisionFilter.category ===
-                    this.scene.asteroidCollisionCategory
+                        this.scene.asteroidCollisionCategory ||
+                    otherBody.collisionFilter.category ===
+                        this.scene.alienCollisionCategory
                 ) {
                     this.scene.sound.setVolume(0.5).play("sfx-explosion1");
                     this.setActive(false);
@@ -51,25 +51,25 @@ class Ship extends Phaser.Physics.Matter.Sprite {
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
         // ship movement
-        if (keys.W.isDown) {
+        if (keys.W.isDown || cursors.up.isDown) {
             this.thrust(0.01);
             // console.log(this.angle);
         }
-        if (keys.S.isDown) {
+        if (keys.S.isDown || cursors.down.isDown) {
             this.thrust(-0.01);
             // console.log(this.angle);
         }
-        if (keys.A.isDown) {
+        if (keys.A.isDown || cursors.left.isDown) {
             this.thrustLeft(0.01);
         }
-        if (keys.D.isDown) {
+        if (keys.D.isDown || cursors.right.isDown) {
             this.thrustRight(0.01);
         }
 
-        if (keys.Q.isDown) {
-            this.setAngularVelocity(-0.05);
-        } else if (keys.E.isDown) {
-            this.setAngularVelocity(0.05);
-        }
+        // if (keys.Q.isDown) {
+        //     this.setAngularVelocity(-0.05);
+        // } else if (keys.E.isDown) {
+        //     this.setAngularVelocity(0.05);
+        // }
     }
 }
