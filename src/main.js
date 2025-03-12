@@ -5,8 +5,8 @@ const config = {
     type: Phaser.AUTO,
     scale: {
         // mode: Phaser.Scale.FIT,
-        // autoCenter: Phaser.Scale.CENTER_BOTH,
-        // zoom: 1,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        zoom: 1,
         width: 720,
         height: 540,
     },
@@ -53,6 +53,3 @@ const game = new Phaser.Game(config);
 
 // input
 let keys, cursors;
-
-// background
-let tilePOS = 0;

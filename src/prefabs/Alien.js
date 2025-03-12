@@ -2,6 +2,8 @@ class Alien extends Phaser.Physics.Matter.Sprite {
     constructor(scene, x, y, texture, options) {
         super(scene.matter.world, x, y, texture, null, options);
 
+        this.lifespan = 0;
+
         this.setFriction(0);
         this.setFrictionAir(0);
         this.setFixedRotation();
@@ -38,6 +40,14 @@ class Alien extends Phaser.Physics.Matter.Sprite {
                     otherBody.collisionFilter.category ===
                     this.scene.blastCollisionCategory
                 ) {
+                    // // spawn alien swarm
+                    // const smallAlien = this.scene.smallAlien.find(
+                    //     (smallAlien) => !smallAlien.active
+                    // );
+                    // if (smallAlien) {
+                    //     smallAlien.spawn(this.x, this.y, (Math.PI * 2) / 4, 3);
+                    // }
+
                     this.scene.sound.setVolume(0.7).play("sfx-explosion2");
                     this.setActive(false);
                     this.setVisible(false);
@@ -53,6 +63,12 @@ class Alien extends Phaser.Physics.Matter.Sprite {
         this.lifespan -= delta;
 
         if (this.lifespan <= 0) {
+            this.setActive(false);
+            this.setVisible(false);
+            this.world.remove(this.body, true);
+        }
+
+        if (this.y - this.height > game.config.height) {
             this.setActive(false);
             this.setVisible(false);
             this.world.remove(this.body, true);

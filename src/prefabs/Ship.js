@@ -5,6 +5,11 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.setActive(false);
         this.setVisible(false);
 
+        this.setPolygon(28, 3);
+        this.setOrigin(0.41, 0.5);
+        this.body.angle = Math.PI;
+        this.setRotation(-Math.PI / 2);
+
         this.scene.add.existing(this);
 
         this.scene.matter.world.remove(this.body, true);
@@ -19,12 +24,26 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.setActive(true);
         this.setVisible(true);
 
-        this.body.angle = Math.PI;
-        this.setAngle(-90);
         this.setFriction(0);
         this.setFrictionAir(0.1);
-        this.setMass(10);
+        this.setMass(5);
         this.setFixedRotation();
+        this.setVelocity(0, 0);
+        this.setAngularVelocity(0);
+    }
+
+    respawn(x, y) {
+        this.scene.matter.world.add(this.body);
+
+        this.setPosition(x, y);
+        this.setActive(true);
+        this.setVisible(true);
+
+        this.setFriction(0);
+        this.setFrictionAir(0.1);
+        this.setMass(5);
+        this.setFixedRotation();
+        this.setVelocity(0, 0);
         this.setAngularVelocity(0);
     }
 

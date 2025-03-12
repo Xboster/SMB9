@@ -4,7 +4,7 @@ class Menu extends Phaser.Scene {
     }
     init() {}
     preload() {}
-    create() {
+    create(data) {
         this.input.mouse.disableContextMenu();
         // width: 720,
         // height: 540,
@@ -13,6 +13,9 @@ class Menu extends Phaser.Scene {
         this.background = this.add
             .tileSprite(0, 0, 1024, 1024, "background")
             .setOrigin(0);
+        if (data.backgroundY) {
+            this.background.tilePositionY = data.backgroundY;
+        }
 
         this.option = ["Play ", "Scores ", "Credits "];
         // TITLE

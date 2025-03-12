@@ -2,6 +2,8 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
     constructor(scene, x, y, texture, options) {
         super(scene.matter.world, x, y, texture, null, options);
 
+        this.lifespan = 0;
+
         this.setFriction(0);
         this.setFrictionAir(0);
         this.setFixedRotation();
@@ -51,6 +53,8 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
                     this.setActive(false);
                     this.setVisible(false);
                     this.world.remove(this.body, false);
+                    // update score
+                    this.scene.score += 150;
                 }
             }
         });
@@ -62,6 +66,12 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
         this.lifespan -= delta;
 
         if (this.lifespan <= 0) {
+            this.setActive(false);
+            this.setVisible(false);
+            this.world.remove(this.body, true);
+        }
+
+        if (this.y - this.height > game.config.height) {
             this.setActive(false);
             this.setVisible(false);
             this.world.remove(this.body, true);

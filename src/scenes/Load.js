@@ -69,17 +69,6 @@ class Load extends Phaser.Scene {
             frameRate: 10,
             repeat: -1,
         });
-
-        cursors = this.input.keyboard.createCursorKeys();
-        keys = this.input.keyboard.addKeys({
-            W: Phaser.Input.Keyboard.KeyCodes.W,
-            A: Phaser.Input.Keyboard.KeyCodes.A,
-            S: Phaser.Input.Keyboard.KeyCodes.S,
-            D: Phaser.Input.Keyboard.KeyCodes.D,
-            Q: Phaser.Input.Keyboard.KeyCodes.Q,
-            E: Phaser.Input.Keyboard.KeyCodes.E,
-            SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
-        });
     }
     update() {
         this.time.delayedCall(300, () => {

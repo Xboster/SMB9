@@ -37,7 +37,9 @@ class Blast extends Phaser.Physics.Matter.Sprite {
 
                 if (
                     otherBody.collisionFilter.category ===
-                    this.scene.asteroidCollisionCategory
+                        this.scene.asteroidCollisionCategory ||
+                    otherBody.collisionFilter.category ===
+                        this.scene.alienCollisionCategory
                 ) {
                     this.setActive(false);
                     this.setVisible(false);

@@ -2,11 +2,10 @@ class Play extends Phaser.Scene {
     constructor() {
         super("playScene");
     }
-    init() {
-        this.fixed = true;
-    }
+    init() {}
     preload() {}
     create(data) {
+        this.score = 0;
         this.input.mouse.disableContextMenu();
         // background
         this.background = this.add
@@ -14,34 +13,18 @@ class Play extends Phaser.Scene {
             .setOrigin(0, 0);
         this.background.tilePositionY = data.backgroundY;
         this.timeSinceMove = 0;
-        // console.log(data.backgroundY);
-        // UI TEXT
 
-        this.add
-            .bitmapText(
-                20, // x
-                10, // y
-                "VCROSDMono", // key
-                "score:_______", // text
-                21, // size
-                1 // align
-            )
-            .setOrigin(0)
-            // .setDropShadow(1, 2, "0xFF0000", 123)
-            .setCharacterTint(0, -1, true, "0x00ff00");
-
-        // UI Lives
-        this.add
-            .image(game.config.width - 20, 20, "ship")
-            .setAngle(-90)
-            .setScale(1 / 3)
-            .setTint(0xff0000);
-
-        this.add
-            .image(game.config.width - 40, 20, "ship")
-            .setAngle(-90)
-            .setScale(1 / 3)
-            .setTint(0xff0000);
+        // input ------------------------------------------------------------------
+        cursors = this.input.keyboard.createCursorKeys();
+        keys = this.input.keyboard.addKeys({
+            W: Phaser.Input.Keyboard.KeyCodes.W,
+            A: Phaser.Input.Keyboard.KeyCodes.A,
+            S: Phaser.Input.Keyboard.KeyCodes.S,
+            D: Phaser.Input.Keyboard.KeyCodes.D,
+            Q: Phaser.Input.Keyboard.KeyCodes.Q,
+            E: Phaser.Input.Keyboard.KeyCodes.E,
+            SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
+        });
 
         // world bounds ------------------------------------------------------------------
         // this.matter.world.setBounds(
@@ -58,16 +41,18 @@ class Play extends Phaser.Scene {
         this.shipCollisionCategory = this.matter.world.nextCategory();
 
         // add ship ------------------------------------------------------------------
-        this.ship = new Ship(this, 0, 0, "ship", {})
-            .setPolygon(28, 3)
-            .setOrigin(0.41, 0.5);
+        this.shipSpawnPoint = new Phaser.Math.Vector2(
+            game.config.width / 2,
+            (game.config.height / 20) * 19
+        );
+        this.ship = new Ship(this, 0, 0, "ship");
 
         this.ship.setCollisionCategory(this.shipCollisionCategory);
-        this.ship.spawn(game.config.width / 2, (game.config.height / 20) * 19);
+        this.ship.spawn(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
 
         // blasts ------------------------------------------------------------------
         this.blasts = [];
-        for (let i = 0; i < 512; i++) {
+        for (let i = 0; i < 128; i++) {
             const blast = new Blast(this, 0, 0, "blast", {
                 isSensor: true,
             });
@@ -93,13 +78,13 @@ class Play extends Phaser.Scene {
 
         // aliens ------------------------------------------------------------------
         this.aliens = [];
-        for (let i = 0; i < 512; i++) {
+        for (let i = 0; i < 128; i++) {
             const alien = new Alien(this, 0, 0, "alien", {
                 isSensor: true,
                 shape: {
                     type: "rectangle",
-                    width: 24,
-                    height: 20,
+                    width: 22,
+                    height: 18,
                 },
                 chamfer: {
                     radius: [8, 8, 0, 0],
@@ -113,19 +98,48 @@ class Play extends Phaser.Scene {
             alien.setCollisionCategory(this.alienCollisionCategory);
             alien.setCollidesWith([
                 this.shipCollisionCategory,
-                // this.blastCollisionCategory,
+                this.blastCollisionCategory,
             ]);
 
             this.aliens.push(alien);
         }
+
+        // aliens ------------------------------------------------------------------
+        this.alienSwarm = [];
+        for (let i = 0; i < 128; i++) {
+            const smallAlien = new Alien(this, 0, 0, "alien", {
+                isSensor: true,
+                shape: {
+                    type: "rectangle",
+                    width: 11,
+                    height: 9,
+                },
+                chamfer: {
+                    radius: [4, 4, 4, 4],
+                },
+            }).setOrigin(0.5, 0.5);
+
+            smallAlien.anims.play("idle");
+
+            smallAlien.preFX.addGlow(0x00ff00, 1, 0, false);
+
+            smallAlien.setCollisionCategory(this.alienCollisionCategory);
+            smallAlien.setCollidesWith([
+                this.shipCollisionCategory,
+                this.blastCollisionCategory,
+            ]);
+
+            this.alienSwarm.push(smallAlien);
+        }
+
         // asteroids ------------------------------------------------------------------
         this.asteroids = [];
-        for (let i = 0; i < 512; i++) {
+        for (let i = 0; i < 256; i++) {
             const asteroid = new Asteroid(this, 0, 0, "asteroid", {
                 isSensor: true,
                 shape: {
                     type: "polygon",
-                    radius: 16,
+                    radius: 14,
                     sides: 6,
                 },
             });
@@ -160,6 +174,32 @@ class Play extends Phaser.Scene {
                 }
             }
         });
+
+        // UI TEXT
+        this.scoreTxt = this.add
+            .bitmapText(
+                20, // x
+                10, // y
+                "VCROSDMono", // key
+                "score: ", // text
+                21, // size
+                1 // align
+            )
+            .setOrigin(0)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0x00ff00");
+
+        // UI Lives
+        this.lives = [];
+        for (let i = 1; i < 3; i++) {
+            this.lives.push(
+                this.add
+                    .image(game.config.width - 20 * i, 20, "ship")
+                    .setAngle(-90)
+                    .setScale(1 / 3)
+                    .setTint(0xff0000)
+            );
+        }
 
         this.lastSpawned = 0;
         this.spawnInterval = 500;
@@ -203,11 +243,32 @@ class Play extends Phaser.Scene {
         }
         this.lastSpawned += delta;
 
-        if (!this.ship.active) {
-            if (keys.SPACE.isDown) {
-                this.matter.world.resetCollisionIDs();
-                this.scene.start("menuScene");
+        if (
+            !this.ship.active &&
+            !this.asteroids.find((asteroid) => asteroid.active) &&
+            !this.aliens.find((alien) => alien.active)
+        ) {
+            // respawn ship
+            for (let i = this.lives.length - 1; i >= 0; i--) {
+                if (this.lives[i].visible) {
+                    console.log("HAS " + i + " LIVES LEFT");
+                    this.lives[i].setVisible(false);
+
+                    this.ship.respawn(
+                        this.shipSpawnPoint.x,
+                        this.shipSpawnPoint.y
+                    );
+
+                    break;
+                }
+                if (i == 0) {
+                    console.log("game over");
+                }
             }
         }
+
+        this.scoreTxt
+            .setText("score:" + this.score)
+            .setCharacterTint(6, -1, true, "0xFFFFFF");
     }
 }
