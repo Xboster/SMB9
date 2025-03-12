@@ -18,7 +18,15 @@ class Blast extends Phaser.Physics.Matter.Sprite {
     fire(x, y, angle, speed) {
         this.scene.matter.world.add(this.body);
 
-        this.setPosition(x, y);
+        let dx = this.scene.ship.x - this.x;
+        let dy = this.scene.ship.y - this.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > 0) {
+            dx /= distance;
+            dy /= distance;
+        }
+        this.setPosition(x + 28 * Math.cos(angle), y + 28 * Math.sin(angle));
         this.setActive(true);
         this.setVisible(true);
 

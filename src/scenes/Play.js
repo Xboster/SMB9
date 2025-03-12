@@ -94,7 +94,7 @@ class Play extends Phaser.Scene {
             alien.anims.play("idle");
             alien.setDataEnabled();
             alien.setData("mother", false);
-
+            alien.setData("swarm", false);
             alien.preFX.addGlow(0x00ff00, 1, 0, false);
 
             alien.setCollisionCategory(this.alienCollisionCategory);
@@ -125,7 +125,7 @@ class Play extends Phaser.Scene {
 
             smallAlien.setDataEnabled();
             smallAlien.setData("mother", false);
-
+            smallAlien.setData("swarm", false);
             smallAlien.preFX.addGlow(0x00ff00, 1, 0, false);
 
             smallAlien.setCollisionCategory(this.alienCollisionCategory);
@@ -190,41 +190,47 @@ class Play extends Phaser.Scene {
             //         smallAlien.spawn(x, y, (Math.PI * 2) / 4, 3);
             //     }
             // }
-            const motherGroup = this.add.group();
-            const circle = new Phaser.Geom.Circle(x, y, 128);
+            this.motherGroup = this.add.group();
+            this.circle = new Phaser.Geom.Circle(x, y, 128);
 
             // multi spinning alien
             if (pointer.rightButtonDown()) {
+                if (this.swarmCircle) {
+                    this.swarmCircle.stop();
+                }
                 const motherAliens = this.alienSwarm
                     .filter(
-                        (alien) => !alien.active && !alien.data.values["mother"]
+                        (alien) => !alien.active && !alien.data.values["swarm"]
                     )
                     .slice(0, 8);
-
                 if (motherAliens) {
                     motherAliens.forEach((alien) => {
-                        alien.spawn(0, 0, 0, 0, { x: 0, y: 0 }, 9999);
-                        alien.setScale(1);
                         alien.setData("mother", true);
+                        alien.spawn(0, 0);
+                        alien.setScale(1);
                     });
-                    motherGroup.addMultiple(motherAliens);
+                    this.motherGroup.clear();
+                    this.motherGroup.addMultiple(motherAliens);
                 }
 
                 // console.log(motherGroup);
-                Phaser.Actions.PlaceOnCircle(motherGroup.getChildren(), circle);
+                Phaser.Actions.PlaceOnCircle(
+                    this.motherGroup.getChildren(),
+                    this.circle
+                );
 
-                this.tweens.add({
-                    targets: circle,
+                this.swarmCircle = this.tweens.add({
+                    targets: this.circle,
                     radius: 25,
                     duration: 8000,
                     yoyo: true,
                     repeat: -1,
-                    onUpdate: function () {
+                    onUpdate: () => {
                         Phaser.Actions.RotateAroundDistance(
-                            motherGroup.getChildren(),
+                            this.motherGroup.getChildren(),
                             { x: x, y: y },
                             0.02,
-                            circle.radius
+                            this.circle.radius
                         );
                     },
                 });
@@ -232,11 +238,13 @@ class Play extends Phaser.Scene {
 
             // move to
             if (pointer.leftButtonDown()) {
-                const smallAlien = this.alienSwarm.find(
-                    (alien) => alien.active
+                const smallAlien = this.alienSwarm.filter(
+                    (alien) => alien.active && alien.data.values["swarm"]
                 );
                 if (smallAlien) {
-                    console.log(smallAlien.body.velocity);
+                    smallAlien.forEach((alien) => {
+                        alien.moveTo(x, y, 5);
+                    });
                 }
             }
         });

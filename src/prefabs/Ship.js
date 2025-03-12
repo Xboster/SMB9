@@ -85,10 +85,10 @@ class Ship extends Phaser.Physics.Matter.Sprite {
             this.thrustRight(0.01);
         }
 
-        // if (keys.Q.isDown) {
-        //     this.setAngularVelocity(-0.05);
-        // } else if (keys.E.isDown) {
-        //     this.setAngularVelocity(0.05);
-        // }
+        if (keys.Q.isDown || cursors.left.isDown) {
+            this.setAngularVelocity(-0.05);
+        } else if (keys.E.isDown || cursors.right.isDown) {
+            this.setAngularVelocity(0.05);
+        }
     }
 }
