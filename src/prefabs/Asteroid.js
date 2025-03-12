@@ -17,7 +17,7 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
         this.scene.matter.world.on("collisionstart", this.onCollision, this);
     }
 
-    spawn(x, y, angle, speed) {
+    spawn(x, y, angle, speed, lifespan = 5000) {
         this.scene.matter.world.add(this.body);
 
         this.setPosition(x, y);
@@ -27,7 +27,7 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
         this.setVelocityX(speed * Math.cos(angle));
         this.setVelocityY(speed * Math.sin(angle));
 
-        this.lifespan = 5000;
+        this.lifespan = lifespan;
     }
 
     onCollision(event) {

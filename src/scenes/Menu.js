@@ -13,11 +13,12 @@ class Menu extends Phaser.Scene {
         this.background = this.add
             .tileSprite(0, 0, 1024, 1024, "background")
             .setOrigin(0);
+        this.timeSinceMove = 0;
         if (data.backgroundY) {
             this.background.tilePositionY = data.backgroundY;
         }
 
-        this.option = ["Play ", "Scores ", "Credits "];
+        this.option = ["PLAY ", "SCORES ", "CREDITS "];
         // TITLE
         this.add
             .bitmapText(
@@ -71,7 +72,6 @@ class Menu extends Phaser.Scene {
             SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
         });
 
-        this.timeSinceMove = 0;
         this.menuSelection = 0;
     }
     update(time, delta) {
@@ -99,19 +99,19 @@ class Menu extends Phaser.Scene {
             }
         }
         if (this.menuSelection == 0) {
-            this.playTxt.setText(">Play");
+            this.playTxt.setText(">PLAY");
         } else {
-            this.playTxt.setText(" Play");
+            this.playTxt.setText(" PLAY");
         }
         if (this.menuSelection == 1) {
-            this.scoresTxt.setText(">Scores");
+            this.scoresTxt.setText(">SCORES");
         } else {
-            this.scoresTxt.setText(" Scores");
+            this.scoresTxt.setText(" SCORES");
         }
         if (this.menuSelection == 2) {
-            this.creditsTxt.setText(">Credits");
+            this.creditsTxt.setText(">CREDITS");
         } else {
-            this.creditsTxt.setText(" Credits");
+            this.creditsTxt.setText(" CREDITS");
         }
 
         if (Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
@@ -121,10 +121,14 @@ class Menu extends Phaser.Scene {
                 });
             }
             if (this.menuSelection == 1) {
-                this.scene.start("scoresScene");
+                this.scene.start("scoresScene", {
+                    backgroundY: this.background.tilePositionY,
+                });
             }
             if (this.menuSelection == 2) {
-                this.scene.start("creditsScene");
+                this.scene.start("creditsScene", {
+                    backgroundY: this.background.tilePositionY,
+                });
             }
         }
     }

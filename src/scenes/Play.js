@@ -52,7 +52,7 @@ class Play extends Phaser.Scene {
 
         // blasts ------------------------------------------------------------------
         this.blasts = [];
-        for (let i = 0; i < 128; i++) {
+        for (let i = 0; i < 256; i++) {
             const blast = new Blast(this, 0, 0, "blast", {
                 isSensor: true,
             });
@@ -76,9 +76,9 @@ class Play extends Phaser.Scene {
             }
         });
 
-        // aliens ------------------------------------------------------------------
+        // basic aliens ------------------------------------------------------------------
         this.aliens = [];
-        for (let i = 0; i < 128; i++) {
+        for (let i = 0; i < 256; i++) {
             const alien = new Alien(this, 0, 0, "alien", {
                 isSensor: true,
                 shape: {
@@ -92,34 +92,39 @@ class Play extends Phaser.Scene {
             }).setOrigin(0.5, 0.5);
 
             alien.anims.play("idle");
+            alien.setDataEnabled();
+            alien.setData("mother", false);
 
             alien.preFX.addGlow(0x00ff00, 1, 0, false);
 
             alien.setCollisionCategory(this.alienCollisionCategory);
             alien.setCollidesWith([
                 this.shipCollisionCategory,
-                this.blastCollisionCategory,
+                // this.blastCollisionCategory,
             ]);
 
             this.aliens.push(alien);
         }
 
-        // aliens ------------------------------------------------------------------
+        // alien Swarm ------------------------------------------------------------------
         this.alienSwarm = [];
-        for (let i = 0; i < 128; i++) {
+        for (let i = 0; i < 256; i++) {
             const smallAlien = new Alien(this, 0, 0, "alien", {
                 isSensor: true,
                 shape: {
                     type: "rectangle",
-                    width: 11,
-                    height: 9,
+                    width: 22,
+                    height: 18,
                 },
                 chamfer: {
-                    radius: [4, 4, 4, 4],
+                    radius: [8, 8, 0, 0],
                 },
             }).setOrigin(0.5, 0.5);
 
             smallAlien.anims.play("idle");
+
+            smallAlien.setDataEnabled();
+            smallAlien.setData("mother", false);
 
             smallAlien.preFX.addGlow(0x00ff00, 1, 0, false);
 
@@ -159,18 +164,79 @@ class Play extends Phaser.Scene {
             const y = pointer.y;
             // console.log(`Clicked at: x=${x}, y=${y}`);
 
-            if (pointer.leftButtonDown()) {
-                const asteroid = this.asteroids.find(
-                    (asteroid) => !asteroid.active
-                );
-                if (asteroid) {
-                    asteroid.spawn(x, y, (Math.PI * 2) / 4, 3);
-                }
-            }
+            // if (pointer.leftButtonDown()) {
+            //     const asteroid = this.asteroids.find(
+            //         (asteroid) => !asteroid.active
+            //     );
+            //     if (asteroid) {
+            //         asteroid.spawn(x, y, (Math.PI * 2) / 4, 3);
+            //     }
+            // }
+
+            // normal alien
+            // if (pointer.rightButtonDown()) {
+            //     const alien = this.aliens.find((alien) => !alien.active);
+            //     if (alien) {
+            //         alien.spawn(x, y, (Math.PI * 2) / 4, 3);
+            //     }
+            // }
+
+            // splitting alien
+            // if (pointer.rightButtonDown()) {
+            //     const smallAlien = this.alienSwarm.find(
+            //         (smallAlien) => !smallAlien.active
+            //     );
+            //     if (smallAlien) {
+            //         smallAlien.spawn(x, y, (Math.PI * 2) / 4, 3);
+            //     }
+            // }
+            const motherGroup = this.add.group();
+            const circle = new Phaser.Geom.Circle(x, y, 128);
+
+            // multi spinning alien
             if (pointer.rightButtonDown()) {
-                const alien = this.aliens.find((alien) => !alien.active);
-                if (alien) {
-                    alien.spawn(x, y, (Math.PI * 2) / 4, 3);
+                const motherAliens = this.alienSwarm
+                    .filter(
+                        (alien) => !alien.active && !alien.data.values["mother"]
+                    )
+                    .slice(0, 8);
+
+                if (motherAliens) {
+                    motherAliens.forEach((alien) => {
+                        alien.spawn(0, 0, 0, 0, { x: 0, y: 0 }, 9999);
+                        alien.setScale(1);
+                        alien.setData("mother", true);
+                    });
+                    motherGroup.addMultiple(motherAliens);
+                }
+
+                // console.log(motherGroup);
+                Phaser.Actions.PlaceOnCircle(motherGroup.getChildren(), circle);
+
+                this.tweens.add({
+                    targets: circle,
+                    radius: 25,
+                    duration: 8000,
+                    yoyo: true,
+                    repeat: -1,
+                    onUpdate: function () {
+                        Phaser.Actions.RotateAroundDistance(
+                            motherGroup.getChildren(),
+                            { x: x, y: y },
+                            0.02,
+                            circle.radius
+                        );
+                    },
+                });
+            }
+
+            // move to
+            if (pointer.leftButtonDown()) {
+                const smallAlien = this.alienSwarm.find(
+                    (alien) => alien.active
+                );
+                if (smallAlien) {
+                    console.log(smallAlien.body.velocity);
                 }
             }
         });
@@ -203,6 +269,7 @@ class Play extends Phaser.Scene {
 
         this.lastSpawned = 0;
         this.spawnInterval = 500;
+        this.asteroidsSpawned = 490;
     }
     update(time, delta) {
         // console.log("FPS:", this.game.loop.actualFps);
@@ -224,8 +291,12 @@ class Play extends Phaser.Scene {
         //     }
         // }
 
-        // asteroid random spawn
-        if (this.ship.active && this.lastSpawned > this.spawnInterval + 200) {
+        // asteroid random spawn wave
+        if (
+            this.ship.active &&
+            this.lastSpawned > this.spawnInterval + 100 &&
+            this.asteroidsSpawned < 500
+        ) {
             const asteroid = this.asteroids.find(
                 (asteroid) => !asteroid.active
             );
@@ -239,9 +310,14 @@ class Play extends Phaser.Scene {
                 );
                 this.lastSpawned = 0;
                 if (this.spawnInterval > 0) this.spawnInterval -= 10;
+                this.asteroidsSpawned += 1;
+                console.log(this.asteroidsSpawned);
             }
         }
         this.lastSpawned += delta;
+
+        if (this.asteroidsSpawned >= 500) {
+        }
 
         if (
             !this.ship.active &&
