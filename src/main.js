@@ -32,11 +32,11 @@ const config = {
                 bottom: true,
             },
 
-            debug: {
-                // showAxes: true,
-                showAngleIndicator: true,
-                showBody: true,
-            },
+            // debug: {
+            //     // showAxes: true,
+            //     showAngleIndicator: true,
+            //     showBody: true,
+            // },
         },
     },
     backgroundColor: "#4444aa",

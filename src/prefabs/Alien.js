@@ -17,7 +17,7 @@ class Alien extends Phaser.Physics.Matter.Sprite {
         this.scene.matter.world.on("collisionstart", this.onCollision, this);
     }
 
-    spawn(x, y, angle = 0, speed = 0, lifespan = 5000) {
+    spawn(x, y, angle = 0, speed = 0, lifespan = 50000) {
         this.scene.matter.world.add(this.body);
 
         this.setPosition(x, y);
@@ -56,14 +56,17 @@ class Alien extends Phaser.Physics.Matter.Sprite {
         let dy = y - this.y;
         let distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance > 0) {
+        if (distance > 0.1) {
             dx /= distance;
             dy /= distance;
 
             this.setVelocity(
-                dx * speed + this.body.velocity.x,
-                dy * speed + this.body.velocity.y
+                dx + this.body.velocity.x,
+                dy + this.body.velocity.y
             );
+        } else {
+            this.setVelocityX(0);
+            this.setVelocityY(0);
         }
     }
 

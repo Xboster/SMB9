@@ -190,50 +190,12 @@ class Play extends Phaser.Scene {
             //         smallAlien.spawn(x, y, (Math.PI * 2) / 4, 3);
             //     }
             // }
-            this.motherGroup = this.add.group();
-            this.circle = new Phaser.Geom.Circle(x, y, 128);
 
             // multi spinning alien
             if (pointer.rightButtonDown()) {
-                if (this.swarmCircle) {
-                    this.swarmCircle.stop();
-                }
-                const motherAliens = this.alienSwarm
-                    .filter(
-                        (alien) => !alien.active && !alien.data.values["swarm"]
-                    )
-                    .slice(0, 8);
-                if (motherAliens) {
-                    motherAliens.forEach((alien) => {
-                        alien.setData("mother", true);
-                        alien.spawn(0, 0);
-                        alien.setScale(1);
-                    });
-                    this.motherGroup.clear();
-                    this.motherGroup.addMultiple(motherAliens);
-                }
-
-                // console.log(motherGroup);
-                Phaser.Actions.PlaceOnCircle(
-                    this.motherGroup.getChildren(),
-                    this.circle
-                );
-
-                this.swarmCircle = this.tweens.add({
-                    targets: this.circle,
-                    radius: 25,
-                    duration: 8000,
-                    yoyo: true,
-                    repeat: -1,
-                    onUpdate: () => {
-                        Phaser.Actions.RotateAroundDistance(
-                            this.motherGroup.getChildren(),
-                            { x: x, y: y },
-                            0.02,
-                            this.circle.radius
-                        );
-                    },
-                });
+                // this.circleSwarm(x, y);
+                // console.log(
+                // );
             }
 
             // move to
@@ -277,7 +239,9 @@ class Play extends Phaser.Scene {
 
         this.lastSpawned = 0;
         this.spawnInterval = 500;
-        this.asteroidsSpawned = 490;
+        this.asteroidsSpawned = 495;
+        this.swarmSpawned = false;
+        this.gamePhase = 1;
     }
     update(time, delta) {
         // console.log("FPS:", this.game.loop.actualFps);
@@ -299,8 +263,9 @@ class Play extends Phaser.Scene {
         //     }
         // }
 
-        // asteroid random spawn wave
+        // PHASE 1: random asteroid spawn
         if (
+            this.gamePhase == 1 &&
             this.ship.active &&
             this.lastSpawned > this.spawnInterval + 100 &&
             this.asteroidsSpawned < 500
@@ -321,10 +286,39 @@ class Play extends Phaser.Scene {
                 this.asteroidsSpawned += 1;
                 console.log(this.asteroidsSpawned);
             }
+            // next phase
+            if (this.asteroidsSpawned >= 500) {
+                this.gamePhase++;
+            }
         }
         this.lastSpawned += delta;
+        // PHASE 2: alien circle
+        if (
+            this.gamePhase == 2 &&
+            !this.asteroids.find((asteroid) => asteroid.active) &&
+            !this.aliens.find((alien) => alien.active)
+        ) {
+            this.ship.moveTo(game.config.width / 2, game.config.height / 2);
+            if (!this.swarmSpawned) {
+                this.time.delayedCall(2000, () => {
+                    this.circleSwarm(this.ship.x, this.ship.y);
+                });
+                this.swarmSpawned = true;
+                this.ship.fixed = false;
+            }
+            if (!this.alienSwarm.find((alien) => alien.data.values["mother"])) {
+                console.log("PHASE 2");
+                // TODO
+                this.gamePhase++;
+            }
+        }
+        // PHASE 3: MEGA BOSS
+        if (this.gamePhase == 3) {
+            console.log("PHASE 3");
 
-        if (this.asteroidsSpawned >= 500) {
+            this.ship.fixed = true;
+            this.ship.setAngle(Math.PI);
+            this.ship.setRotation(-Math.PI / 2);
         }
 
         if (
@@ -354,5 +348,50 @@ class Play extends Phaser.Scene {
         this.scoreTxt
             .setText("score:" + this.score)
             .setCharacterTint(6, -1, true, "0xFFFFFF");
+    }
+
+    circleSwarm(x, y) {
+        this.motherGroup = this.add.group();
+        this.circle = new Phaser.Geom.Circle(x, y, 128);
+
+        if (this.swarmCircle) {
+            this.swarmCircle.stop();
+        }
+        const motherAliens = this.alienSwarm
+            .filter((alien) => !alien.active && !alien.data.values["swarm"])
+            .slice(0, 8);
+        if (motherAliens) {
+            motherAliens.forEach((alien) => {
+                alien.setData("mother", true);
+                alien.spawn(0, 0);
+                alien.setScale(1);
+            });
+            if (this.motherGroup) {
+                this.motherGroup.clear();
+                this.motherGroup.addMultiple(motherAliens);
+            }
+        }
+
+        // console.log(motherGroup);
+        Phaser.Actions.PlaceOnCircle(
+            this.motherGroup.getChildren(),
+            this.circle
+        );
+
+        this.swarmCircle = this.tweens.add({
+            targets: this.circle,
+            radius: 25,
+            duration: 8000,
+            yoyo: true,
+            repeat: -1,
+            onUpdate: () => {
+                Phaser.Actions.RotateAroundDistance(
+                    this.motherGroup.getChildren(),
+                    { x: x, y: y },
+                    0.02,
+                    this.circle.radius
+                );
+            },
+        });
     }
 }

@@ -5,6 +5,8 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.setActive(false);
         this.setVisible(false);
 
+        this.fixed = true;
+
         this.setPolygon(28, 3);
         this.setOrigin(0.41, 0.5);
         this.body.angle = Math.PI;
@@ -30,6 +32,25 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.setFixedRotation();
         this.setVelocity(0, 0);
         this.setAngularVelocity(0);
+    }
+
+    moveTo(x, y, speed) {
+        let dx = x - this.x;
+        let dy = y - this.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > 0.1) {
+            dx /= distance;
+            dy /= distance;
+
+            this.setVelocity(
+                dx + this.body.velocity.x,
+                dy + this.body.velocity.y
+            );
+        } else {
+            this.setVelocityX(0);
+            this.setVelocityY(0);
+        }
     }
 
     respawn(x, y) {
@@ -79,16 +100,24 @@ class Ship extends Phaser.Physics.Matter.Sprite {
             // console.log(this.angle);
         }
         if (keys.A.isDown || cursors.left.isDown) {
-            this.thrustLeft(0.01);
+            if (this.fixed) {
+                this.thrustLeft(0.01);
+            } else {
+                this.setAngularVelocity(-0.05);
+            }
         }
         if (keys.D.isDown || cursors.right.isDown) {
-            this.thrustRight(0.01);
+            if (this.fixed) {
+                this.thrustRight(0.01);
+            } else {
+                this.setAngularVelocity(0.05);
+            }
         }
 
-        if (keys.Q.isDown || cursors.left.isDown) {
-            this.setAngularVelocity(-0.05);
-        } else if (keys.E.isDown || cursors.right.isDown) {
-            this.setAngularVelocity(0.05);
-        }
+        // if (keys.Q.isDown || cursors.left.isDown) {
+        //     this.setAngularVelocity(-0.05);
+        // } else if (keys.E.isDown || cursors.right.isDown) {
+        //     this.setAngularVelocity(0.05);
+        // }
     }
 }
