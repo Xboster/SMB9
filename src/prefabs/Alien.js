@@ -52,6 +52,7 @@ class Alien extends Phaser.Physics.Matter.Sprite {
     }
 
     moveTo(x = 0, y = 0, speed = 0) {
+        this.setSensor(true);
         this.scene.tweens.add({
             targets: this,
             x: x,
@@ -126,7 +127,6 @@ class Alien extends Phaser.Physics.Matter.Sprite {
             alien.setFrictionAir(0.1);
             alien.setData("swarm", true);
             alien.setData("mother", false);
-            alien.setSensor(false);
             if (index < 1) {
                 alien.spawn(
                     this.x, // pos x

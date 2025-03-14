@@ -105,7 +105,7 @@ class Ship extends Phaser.Physics.Matter.Sprite {
             }
         } else {
             console.log("MEGALASER");
-            this.scene.laser.charge(this.x, this.y, this.rotation);
+            this.scene.laser.fire();
         }
     }
     preUpdate(time, delta) {
@@ -153,6 +153,7 @@ class Ship extends Phaser.Physics.Matter.Sprite {
                     this.maxChargeTime,
                 1
             );
+            this.scene.laser.charge(this.x, this.y, this.rotation);
             console.log(this.chargeAmount);
         }
         if (this.isCharging && Phaser.Input.Keyboard.JustUp(keys.SPACE)) {

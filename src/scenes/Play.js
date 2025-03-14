@@ -384,6 +384,7 @@ class Play extends Phaser.Scene {
                         if (waypoint) {
                             waypoint.setActive(false);
                             alien.moveTo(waypoint.x, waypoint.y);
+                            alien.setSensor(false);
                         }
                     });
                     this.time.delayedCall(200, () => {
@@ -430,6 +431,7 @@ class Play extends Phaser.Scene {
                     if (waypoint) {
                         waypoint.setActive(false);
                         alien.moveTo(waypoint.x, waypoint.y);
+                        alien.setSensor(false);
                     }
                 });
                 this.waypoints.forEach((point) => {

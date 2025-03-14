@@ -8,6 +8,17 @@ class Laser extends Phaser.Physics.Matter.Sprite {
         this.setActive(false);
         this.setVisible(false);
 
+        this.laser = [];
+        for (let i = 0; i < 8; i++) {
+            this.laser.push(
+                this.scene.add
+                    .sprite(this.x, this.y, "laser", 8, {
+                        isSensor: true,
+                    })
+                    .setAngle(-90)
+            );
+        }
+
         this.charged = false;
         this.firing = false;
 
@@ -23,30 +34,45 @@ class Laser extends Phaser.Physics.Matter.Sprite {
         this.setActive(true);
         this.setVisible(true);
 
-        this.scene.laser.anims.play("charge");
-
-        this.scene.add.tileSprite(this.x, this.y, 64, 512, "laser");
+        this.anims.play("charge");
     }
-    fire() {}
+    fire() {
+        for (let i = 0; i < 8; i++) {
+            let dx = this.x - this.laser[i].x;
+            let dy = this.y - this.laser[i].y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance > 0) {
+                dx /= distance;
+                dy /= distance;
+            }
+            this.laser[i].setPosition(
+                this.x + 64 * i * Math.cos(this.rotation),
+                this.y + 64 * i * Math.sin(this.rotation)
+            );
+            this.laser[i].setRotation(this.rotation);
+        }
+
+        console.log("laser");
+    }
 
     onCollision(event) {
-        event.pairs.forEach((pair) => {
-            if (pair.bodyA === this.body || pair.bodyB === this.body) {
-                const otherBody =
-                    pair.bodyA === this.body ? pair.bodyB : pair.bodyA;
-
-                if (
-                    otherBody.collisionFilter.category ===
-                        this.scene.asteroidCollisionCategory ||
-                    otherBody.collisionFilter.category ===
-                        this.scene.alienCollisionCategory
-                ) {
-                    this.setActive(false);
-                    this.setVisible(false);
-                    this.world.remove(this.body, true);
-                }
-            }
-        });
+        // event.pairs.forEach((pair) => {
+        //     if (pair.bodyA === this.body || pair.bodyB === this.body) {
+        //         const otherBody =
+        //             pair.bodyA === this.body ? pair.bodyB : pair.bodyA;
+        //         if (
+        //             otherBody.collisionFilter.category ===
+        //                 this.scene.asteroidCollisionCategory ||
+        //             otherBody.collisionFilter.category ===
+        //                 this.scene.alienCollisionCategory
+        //         ) {
+        //             this.setActive(false);
+        //             this.setVisible(false);
+        //             this.world.remove(this.body, true);
+        //         }
+        //     }
+        // });
     }
 
     preUpdate(time, delta) {
