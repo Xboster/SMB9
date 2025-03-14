@@ -27,6 +27,11 @@ class Load extends Phaser.Scene {
             frameWidth: 32,
             frameHeight: 32,
         });
+        this.load.spritesheet("laser", "laser.png", {
+            frameWidth: 64,
+            frameHeight: 64,
+        });
+
         this.load.image("asteroid", "asteroid.png");
         this.load.image("blast", "blast.png");
         this.load.image("background", "stars.png");
@@ -68,6 +73,24 @@ class Load extends Phaser.Scene {
             }),
             frameRate: 10,
             repeat: -1,
+        });
+        this.chargeLaser = this.anims.create({
+            key: "charge",
+            frames: this.anims.generateFrameNumbers("laser", {
+                start: 0,
+                end: 6,
+            }),
+            frameRate: 10,
+            repeat: 0,
+        });
+        this.fireLaser = this.anims.create({
+            key: "fire",
+            frames: this.anims.generateFrameNumbers("laser", {
+                start: 6,
+                end: 8,
+            }),
+            frameRate: 10,
+            repeat: 0,
         });
     }
     update() {

@@ -56,10 +56,12 @@ class Alien extends Phaser.Physics.Matter.Sprite {
             targets: this,
             x: x,
             y: y,
+            angle: 0,
             duration: 500,
             ease: "Linear",
             onComplete: () => {
                 this.setVelocity(0);
+                this.setAngularVelocity(0);
             },
         });
     }
@@ -73,7 +75,7 @@ class Alien extends Phaser.Physics.Matter.Sprite {
             dx /= distance;
             dy /= distance;
 
-            this.setVelocity(dx * speed, dy * speed);
+            this.setVelocity(dx * 2 * speed, dy * speed);
         } else {
             this.setVelocityX(0);
             this.setVelocityY(0);
@@ -124,6 +126,7 @@ class Alien extends Phaser.Physics.Matter.Sprite {
             alien.setFrictionAir(0.1);
             alien.setData("swarm", true);
             alien.setData("mother", false);
+            alien.setSensor(false);
             if (index < 1) {
                 alien.spawn(
                     this.x, // pos x

@@ -5,12 +5,17 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.setActive(false);
         this.setVisible(false);
 
-        this.fixed = true;
-
         this.setPolygon(28, 3);
         this.setOrigin(0.41, 0.5);
         this.body.angle = Math.PI;
         this.setRotation(-Math.PI / 2);
+        this.fixed = true;
+
+        this.lives = 2;
+        this.isCharging = false;
+        this.chargeStartTime = 0;
+        this.chargeAmount = 0;
+        this.maxChargeTime = 1000; // 1 second for full charge
 
         this.scene.add.existing(this);
 
@@ -78,6 +83,31 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         });
     }
 
+    fireProjectile() {
+        if (this.chargeAmount < 1) {
+            // Quick tap: basic projectile
+
+            const blast = new Blast(this.scene, 0, 0, "blast", {
+                isSensor: true,
+            });
+
+            blast.setCollisionCategory(this.scene.blastCollisionCategory);
+            blast.setCollidesWith([
+                this.scene.alienCollisionCategory,
+                this.scene.asteroidCollisionCategory,
+            ]);
+
+            blast.preFX.addGlow(0xffff00, 1, 0, false);
+
+            if (this.active && blast) {
+                blast.fire(this.x, this.y, this.rotation, 10);
+                this.scene.sound.play("sfx-shoot");
+            }
+        } else {
+            console.log("MEGALASER");
+            this.scene.laser.charge(this.x, this.y, this.rotation);
+        }
+    }
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
         // ship movement
@@ -109,5 +139,26 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         // } else if (keys.E.isDown) {
         //     this.setAngularVelocity(0.05);
         // }
+
+        if (Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
+            console.log("CHARGING");
+            this.isCharging = true;
+            this.chargeStartTime = this.scene.time.now;
+            this.chargeAmount = 0;
+        }
+        if (this.isCharging && keys.SPACE.isDown) {
+            // Calculate charge amount (0 to 1)
+            this.chargeAmount = Math.min(
+                (this.scene.time.now - this.chargeStartTime) /
+                    this.maxChargeTime,
+                1
+            );
+            console.log(this.chargeAmount);
+        }
+        if (this.isCharging && Phaser.Input.Keyboard.JustUp(keys.SPACE)) {
+            this.fireProjectile();
+            this.isCharging = false;
+            console.log(this.isCharging);
+        }
     }
 }

@@ -48,32 +48,11 @@ class Play extends Phaser.Scene {
         this.ship = new Ship(this, 0, 0, "ship");
 
         this.ship.setCollisionCategory(this.shipCollisionCategory);
+        // this.ship.setCollidesWith([]);
         this.ship.spawn(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
-
-        // blasts ------------------------------------------------------------------
-        this.blasts = [];
-        for (let i = 0; i < 256; i++) {
-            const blast = new Blast(this, 0, 0, "blast", {
-                isSensor: true,
-            });
-
-            blast.setCollisionCategory(this.blastCollisionCategory);
-            blast.setCollidesWith([
-                this.alienCollisionCategory,
-                this.asteroidCollisionCategory,
-            ]);
-
-            this.blasts.push(blast);
-
-            blast.preFX.addGlow(0xffff00, 1, 0, false);
-        }
-
-        this.input.keyboard.on("keydown-SPACE", () => {
-            const blast = this.blasts.find((blast) => !blast.active);
-            if (this.ship.active && blast) {
-                blast.fire(this.ship.x, this.ship.y, this.ship.rotation, 10);
-                this.sound.play("sfx-shoot");
-            }
+        // add laser
+        this.laser = new Laser(this, 0, 0, "Laser", {
+            isSensor: true,
         });
 
         // basic aliens ------------------------------------------------------------------
@@ -130,6 +109,7 @@ class Play extends Phaser.Scene {
 
             smallAlien.setCollisionCategory(this.alienCollisionCategory);
             smallAlien.setCollidesWith([
+                this.alienCollisionCategory,
                 this.shipCollisionCategory,
                 this.blastCollisionCategory,
             ]);
@@ -191,20 +171,9 @@ class Play extends Phaser.Scene {
             //     }
             // }
 
-            // multi spinning alien
             if (pointer.rightButtonDown()) {
-                const motherAliens = this.alienSwarm
-                    .filter(
-                        (alien) => !alien.active && !alien.data.values["swarm"]
-                    )
-                    .slice(0, 1);
-                if (motherAliens) {
-                    motherAliens.forEach((alien) => {
-                        alien.setData("mother", true);
-                        alien.spawn(x, y);
-                        alien.setScale(1);
-                    });
-                }
+                // console.log(this.textures.getFrame("laser", 1));
+                this.laser.charge(this.ship.x, this.ship.y, this.ship.rotation);
             }
 
             // move to
@@ -422,17 +391,56 @@ class Play extends Phaser.Scene {
                             this.shipCollisionCategory
                         );
                     });
+                    this.gamePhase = 4;
+                    this.waypoints.forEach((point) => {
+                        point.setActive(true);
+                    });
                 });
                 this.swarmUnite = true;
             }
-
-            this.gamePhase = 4;
         }
 
         if (this.gamePhase == 4) {
-            console.log(this.gamePhase);
+            this.inSwarm = this.alienSwarm.filter(
+                (alien) => alien.data.values["swarm"]
+            );
 
-            this.gamePhase = 5;
+            if (this.ship.active) {
+                this.swarmUnite = false;
+                this.inSwarm.forEach((alien) => {
+                    alien.seek(this.ship.x, this.ship.y, 2);
+                });
+            }
+            if (!this.swarmUnite && !this.ship.active) {
+                this.inSwarm = this.alienSwarm.filter(
+                    (alien) => alien.data.values["swarm"]
+                );
+                this.waypoints = this.points.filter((point) => point.active);
+                this.inSwarm.forEach((alien) => {
+                    let waypoint;
+                    do {
+                        waypoint =
+                            this.waypoints[
+                                Math.floor(
+                                    Math.random() * this.waypoints.length
+                                )
+                            ];
+                    } while (!waypoint.active);
+
+                    if (waypoint) {
+                        waypoint.setActive(false);
+                        alien.moveTo(waypoint.x, waypoint.y);
+                    }
+                });
+                this.waypoints.forEach((point) => {
+                    point.setActive(true);
+                });
+                this.swarmUnite = true;
+            }
+            if (this.inSwarm.length == 0) {
+                console.log(this.inSwarm);
+                this.gamePhase = 5;
+            }
         }
         // respawn ship
         if (
@@ -440,21 +448,14 @@ class Play extends Phaser.Scene {
             !this.asteroids.find((asteroid) => asteroid.active) &&
             !this.aliens.find((alien) => alien.active)
         ) {
-            for (let i = this.lives.length - 1; i >= 0; i--) {
-                if (this.lives[i].visible) {
-                    console.log("HAS " + i + " LIVES LEFT");
-                    this.lives[i].setVisible(false);
-
-                    this.ship.spawn(
-                        this.shipSpawnPoint.x,
-                        this.shipSpawnPoint.y
-                    );
-
-                    break;
-                }
-                if (i == 0) {
-                    console.log("game over");
-                }
+            if (this.ship.lives > 0) {
+                this.ship.lives -= 1;
+                console.log("HAS " + this.ship.lives + " LIVES LEFT");
+                this.lives[this.ship.lives].setVisible(false);
+                this.ship.spawn(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
+            }
+            if (this.ship.lives == 0) {
+                console.log("game over");
             }
         }
 

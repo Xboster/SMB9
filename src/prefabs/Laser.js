@@ -1,4 +1,4 @@
-class Blast extends Phaser.Physics.Matter.Sprite {
+class Laser extends Phaser.Physics.Matter.Sprite {
     constructor(scene, x, y, texture, options) {
         super(scene.matter.world, x, y, texture, null, options);
 
@@ -8,6 +8,9 @@ class Blast extends Phaser.Physics.Matter.Sprite {
         this.setActive(false);
         this.setVisible(false);
 
+        this.charged = false;
+        this.firing = false;
+
         this.scene.add.existing(this);
 
         this.scene.matter.world.remove(this.body, true);
@@ -15,27 +18,16 @@ class Blast extends Phaser.Physics.Matter.Sprite {
         this.scene.matter.world.on("collisionstart", this.onCollision, this);
     }
 
-    fire(x, y, angle, speed) {
+    charge(x, y, angle) {
         this.scene.matter.world.add(this.body);
         this.setActive(true);
         this.setVisible(true);
 
-        let dx = this.scene.ship.x - this.x;
-        let dy = this.scene.ship.y - this.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
+        this.scene.laser.anims.play("charge");
 
-        if (distance > 0) {
-            dx /= distance;
-            dy /= distance;
-        }
-        this.setPosition(x + 28 * Math.cos(angle), y + 28 * Math.sin(angle));
-        this.setRotation(angle);
-
-        this.setVelocityX(speed * Math.cos(angle));
-        this.setVelocityY(speed * Math.sin(angle));
-
-        this.lifespan = 800;
+        this.scene.add.tileSprite(this.x, this.y, 64, 512, "laser");
     }
+    fire() {}
 
     onCollision(event) {
         event.pairs.forEach((pair) => {
@@ -59,10 +51,16 @@ class Blast extends Phaser.Physics.Matter.Sprite {
 
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
+        if (this.scene.ship.active) {
+            this.setPosition(
+                this.scene.ship.x + 32 * Math.cos(this.scene.ship.rotation),
+                this.scene.ship.y + 32 * Math.sin(this.scene.ship.rotation)
+            );
+            this.setRotation(this.scene.ship.rotation);
+        } else {
+            this.charged = false;
+            this.firing = false;
 
-        this.lifespan -= delta;
-
-        if (this.lifespan <= 0) {
             this.setActive(false);
             this.setVisible(false);
             this.world.remove(this.body, true);
