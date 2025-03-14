@@ -193,19 +193,29 @@ class Play extends Phaser.Scene {
 
             // multi spinning alien
             if (pointer.rightButtonDown()) {
-                // this.circleSwarm(x, y);
-                // console.log(
-                // );
+                const motherAliens = this.alienSwarm
+                    .filter(
+                        (alien) => !alien.active && !alien.data.values["swarm"]
+                    )
+                    .slice(0, 1);
+                if (motherAliens) {
+                    motherAliens.forEach((alien) => {
+                        alien.setData("mother", true);
+                        alien.spawn(x, y);
+                        alien.setScale(1);
+                    });
+                }
             }
 
             // move to
             if (pointer.leftButtonDown()) {
+                console.log("x: " + x + "y: " + y);
                 const smallAlien = this.alienSwarm.filter(
                     (alien) => alien.active && alien.data.values["swarm"]
                 );
                 if (smallAlien) {
                     smallAlien.forEach((alien) => {
-                        alien.moveTo(x, y, 5);
+                        alien.seek(x, y, 5);
                     });
                 }
             }
@@ -239,9 +249,61 @@ class Play extends Phaser.Scene {
 
         this.lastSpawned = 0;
         this.spawnInterval = 500;
-        this.asteroidsSpawned = 495;
+        this.asteroidsSpawned = 499;
         this.swarmSpawned = false;
+        this.swarmActive = false;
         this.gamePhase = 1;
+        this.inSwarm = [];
+        this.swarmUnite = false;
+        this.points = [];
+        // create points
+        for (let i = 0; i < 12; i++) {
+            for (let j = 0; j < 12; j++) {
+                let point = this.matter.add
+                    .image(300, 300)
+                    .setCircle(5, { isSensor: true });
+                this.points.push(point);
+            }
+        }
+        Phaser.Actions.GridAlign(this.points, {
+            width: 12,
+            height: 12,
+            cellWidth: 15,
+            cellHeight: 12,
+            x: game.config.width / 2 - (12 * 16) / 2 - 8,
+            y: game.config.height / 2 - (12 * 12) / 2 - 100,
+        });
+        this.removePoints = [
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+            [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0],
+            [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+        ];
+        // delete points
+        let total = 0;
+        this.removePoints.forEach((row, rowIndex) => {
+            row.forEach((element, colIndex) => {
+                if (element == 1) {
+                    if (this.points[rowIndex * 12 + colIndex]) {
+                        this.points[rowIndex * 12 + colIndex].setSensor(false);
+                        this.points[rowIndex * 12 + colIndex].destroy();
+                    }
+                }
+                if (element == 0) {
+                    total++;
+                }
+            });
+        });
+        console.log(total);
     }
     update(time, delta) {
         // console.log("FPS:", this.game.loop.actualFps);
@@ -292,47 +354,98 @@ class Play extends Phaser.Scene {
             }
         }
         this.lastSpawned += delta;
+
         // PHASE 2: alien circle
         if (
             this.gamePhase == 2 &&
             !this.asteroids.find((asteroid) => asteroid.active) &&
             !this.aliens.find((alien) => alien.active)
         ) {
-            this.ship.moveTo(game.config.width / 2, game.config.height / 2);
+            if (this.swarmSpawned && !this.swarmActive) {
+                this.ship.moveTo(game.config.width / 2, game.config.height / 2);
+            }
+            // spawn the circle
             if (!this.swarmSpawned) {
                 this.time.delayedCall(2000, () => {
+                    this.ship.fixed = false;
                     this.circleSwarm(this.ship.x, this.ship.y);
+                    this.swarmActive = true;
                 });
                 this.swarmSpawned = true;
-                this.ship.fixed = false;
             }
-            if (!this.alienSwarm.find((alien) => alien.data.values["mother"])) {
-                console.log("PHASE 2");
-                // TODO
-                this.gamePhase++;
+
+            // when all swarm parents dead
+            if (
+                this.swarmSpawned &&
+                this.swarmActive &&
+                !this.alienSwarm.find((alien) => alien.data.values["mother"])
+            ) {
+                // move ship to start
+                this.ship.fixed = true;
+                this.ship.moveTo(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
+                this.ship.rotateTo(-90);
+                this.ship.setCollisionCategory();
+
+                this.gamePhase = 3;
             }
         }
-        // PHASE 3: MEGA BOSS
+
+        // PHASE 3: SPAWN MEGA BOSS
         if (this.gamePhase == 3) {
             console.log("PHASE 3");
+            if (!this.swarmUnite) {
+                this.time.delayedCall(1000, () => {
+                    this.inSwarm = this.alienSwarm.filter(
+                        (alien) => alien.data.values["swarm"]
+                    );
+                    this.waypoints = this.points.filter(
+                        (point) => point.active
+                    );
+                    this.inSwarm.forEach((alien) => {
+                        let waypoint;
+                        do {
+                            waypoint =
+                                this.waypoints[
+                                    Math.floor(
+                                        Math.random() * this.waypoints.length
+                                    )
+                                ];
+                        } while (!waypoint.active);
 
-            this.ship.fixed = true;
-            this.ship.setAngle(Math.PI);
-            this.ship.setRotation(-Math.PI / 2);
+                        if (waypoint) {
+                            waypoint.setActive(false);
+                            alien.moveTo(waypoint.x, waypoint.y);
+                        }
+                    });
+                    this.time.delayedCall(200, () => {
+                        this.ship.setCollisionCategory(
+                            this.shipCollisionCategory
+                        );
+                    });
+                });
+                this.swarmUnite = true;
+            }
+
+            this.gamePhase = 4;
         }
 
+        if (this.gamePhase == 4) {
+            console.log(this.gamePhase);
+
+            this.gamePhase = 5;
+        }
+        // respawn ship
         if (
             !this.ship.active &&
             !this.asteroids.find((asteroid) => asteroid.active) &&
             !this.aliens.find((alien) => alien.active)
         ) {
-            // respawn ship
             for (let i = this.lives.length - 1; i >= 0; i--) {
                 if (this.lives[i].visible) {
                     console.log("HAS " + i + " LIVES LEFT");
                     this.lives[i].setVisible(false);
 
-                    this.ship.respawn(
+                    this.ship.spawn(
                         this.shipSpawnPoint.x,
                         this.shipSpawnPoint.y
                     );

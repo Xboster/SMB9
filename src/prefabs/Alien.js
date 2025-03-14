@@ -52,6 +52,19 @@ class Alien extends Phaser.Physics.Matter.Sprite {
     }
 
     moveTo(x = 0, y = 0, speed = 0) {
+        this.scene.tweens.add({
+            targets: this,
+            x: x,
+            y: y,
+            duration: 500,
+            ease: "Linear",
+            onComplete: () => {
+                this.setVelocity(0);
+            },
+        });
+    }
+
+    seek(x, y, speed = 0) {
         let dx = x - this.x;
         let dy = y - this.y;
         let distance = Math.sqrt(dx * dx + dy * dy);
@@ -60,10 +73,7 @@ class Alien extends Phaser.Physics.Matter.Sprite {
             dx /= distance;
             dy /= distance;
 
-            this.setVelocity(
-                dx + this.body.velocity.x,
-                dy + this.body.velocity.y
-            );
+            this.setVelocity(dx * speed, dy * speed);
         } else {
             this.setVelocityX(0);
             this.setVelocityY(0);
@@ -83,40 +93,60 @@ class Alien extends Phaser.Physics.Matter.Sprite {
                     // update score
                     if (this.data.values["mother"]) {
                         this.scene.score += 1250;
+                        // split mother
+                        this.split();
                     } else {
                         this.scene.score += 500;
                     }
 
-                    // spawn alien swarm
-                    if (this.data.values["mother"]) {
-                        this.scene.motherGroup.remove(this);
-                        const swarmAliens = this.scene.alienSwarm
-                            .filter(
-                                (alien) =>
-                                    !alien.active &&
-                                    !alien.data.values["mother"] &&
-                                    !alien.data.values["swarm"]
-                            )
-                            .slice(0, 8);
-
-                        swarmAliens.forEach((alien, index) => {
-                            alien.setScale(0.5);
-                            alien.setFrictionAir(0.1);
-                            alien.setData("swarm", true);
-                            alien.setData("mother", false);
-                            alien.spawn(
-                                this.x, // pos x
-                                this.y, // pos y
-                                ((Math.PI * 2) / 8) * index, // direction
-                                3 // speed
-                            );
-                            return;
-                        });
-                    }
                     this.scene.sound.setVolume(0.7).play("sfx-explosion2");
                     this.despawn();
                 }
             }
+        });
+    }
+
+    split() {
+        if (this.scene.motherGroup) {
+            this.scene.motherGroup.remove(this);
+        }
+        // get 14 aliens to spread
+        const swarmAliens = this.scene.alienSwarm
+            .filter(
+                (alien) =>
+                    !alien.active &&
+                    !alien.data.values["mother"] &&
+                    !alien.data.values["swarm"]
+            )
+            .slice(0, 14);
+        swarmAliens.forEach((alien, index) => {
+            alien.setScale(0.5);
+            alien.setFrictionAir(0.1);
+            alien.setData("swarm", true);
+            alien.setData("mother", false);
+            if (index < 1) {
+                alien.spawn(
+                    this.x, // pos x
+                    this.y, // pos y
+                    ((Math.PI * 2) / 1) * index, // direction
+                    0 // speed
+                );
+            } else if (index < 5) {
+                alien.spawn(
+                    this.x, // pos x
+                    this.y, // pos y
+                    ((Math.PI * 2) / 4) * index, // direction
+                    3 // speed
+                );
+            } else if (index < 15) {
+                alien.spawn(
+                    this.x, // pos x
+                    this.y, // pos y
+                    ((Math.PI * 2) / 9) * index, // direction
+                    6 // speed
+                );
+            }
+            return;
         });
     }
 

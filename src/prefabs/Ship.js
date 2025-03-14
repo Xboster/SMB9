@@ -26,6 +26,9 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.setActive(true);
         this.setVisible(true);
 
+        this.fixed = true;
+        this.setRotation(-Math.PI / 2);
+
         this.setFriction(0);
         this.setFrictionAir(0.1);
         this.setMass(5);
@@ -34,38 +37,25 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.setAngularVelocity(0);
     }
 
-    moveTo(x, y, speed) {
-        let dx = x - this.x;
-        let dy = y - this.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance > 0.1) {
-            dx /= distance;
-            dy /= distance;
-
-            this.setVelocity(
-                dx + this.body.velocity.x,
-                dy + this.body.velocity.y
-            );
-        } else {
-            this.setVelocityX(0);
-            this.setVelocityY(0);
-        }
+    moveTo(x, y) {
+        this.scene.tweens.add({
+            targets: this,
+            x: x,
+            y: y,
+            duration: 500,
+            ease: "Linear",
+        });
     }
 
-    respawn(x, y) {
-        this.scene.matter.world.add(this.body);
-
-        this.setPosition(x, y);
-        this.setActive(true);
-        this.setVisible(true);
-
-        this.setFriction(0);
-        this.setFrictionAir(0.1);
-        this.setMass(5);
-        this.setFixedRotation();
-        this.setVelocity(0, 0);
-        this.setAngularVelocity(0);
+    rotateTo(angle) {
+        this.scene.tweens.add({
+            targets: this,
+            angle: angle,
+            duration: 500,
+            onComplete: () => {
+                this.setAngularVelocity(0);
+            },
+        });
     }
 
     onCollision(event) {
@@ -114,9 +104,9 @@ class Ship extends Phaser.Physics.Matter.Sprite {
             }
         }
 
-        // if (keys.Q.isDown || cursors.left.isDown) {
+        // if (keys.Q.isDown) {
         //     this.setAngularVelocity(-0.05);
-        // } else if (keys.E.isDown || cursors.right.isDown) {
+        // } else if (keys.E.isDown) {
         //     this.setAngularVelocity(0.05);
         // }
     }
