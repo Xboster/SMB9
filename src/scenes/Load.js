@@ -11,6 +11,9 @@ class Load extends Phaser.Scene {
         this.load.audio("sfx-explosion1", "Explosion 2.wav");
         this.load.audio("sfx-explosion2", "Explosion 2(3).wav");
         this.load.audio("sfx-explosion3", "Explosion 2(2).wav");
+        this.load.audio("sfx-laser", "Laser_shoot 45.wav");
+        this.load.audio("sfx-laser2", "Laser_shoot 46.wav");
+        this.load.audio("sfx-complete", "Jump 1.wav");
 
         // Load Fonts
         this.load.path = "./assets/font/";

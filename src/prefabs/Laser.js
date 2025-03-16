@@ -84,6 +84,7 @@ class Laser extends Phaser.Physics.Matter.Sprite {
                 segment.setActive(true);
                 segment.setVisible(true);
             });
+
             this.firing = true;
         }
     }

@@ -116,6 +116,15 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         } else {
             // Long Press: fire laser
             this.laser.firing = true;
+
+            this.scene.sound.play("sfx-laser");
+            this.scene.time.delayedCall(100, () => {
+                this.scene.sound.play("sfx-laser2");
+            });
+
+            this.scene.time.delayedCall(1000, () => {
+                this.laser.stop();
+            });
         }
     }
     preUpdate(time, delta) {
@@ -167,10 +176,10 @@ class Ship extends Phaser.Physics.Matter.Sprite {
                     this.maxChargeTime,
                 1
             );
-            if (this.chargeAmount >= 1) {
+            if (this.chargeAmount >= 0.8) {
                 this.laser.charge();
             }
-            console.log(this.chargeAmount);
+            // console.log(this.chargeAmount);
         }
         if (this.isCharging && Phaser.Input.Keyboard.JustUp(keys.SPACE)) {
             this.fireProjectile();

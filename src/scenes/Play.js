@@ -172,7 +172,9 @@ class Play extends Phaser.Scene {
             // }
 
             if (pointer.rightButtonDown()) {
-                this.laser.stop();
+                console.log(this.ship.lives);
+                console.log(this.ship.active);
+                this.gameEnd();
             }
 
             // move to
@@ -217,7 +219,7 @@ class Play extends Phaser.Scene {
 
         this.lastSpawned = 0;
         this.spawnInterval = 500;
-        this.asteroidsSpawned = 499;
+        this.asteroidsSpawned = 400;
         this.swarmSpawned = false;
         this.swarmActive = false;
         this.gamePhase = 1;
@@ -357,7 +359,7 @@ class Play extends Phaser.Scene {
             }
         }
 
-        // PHASE 3: SPAWN MEGA BOSS
+        // PHASE 3: SPAWN BIG EVIL BLASTER THING AT THE END THAT YOURE SUPPOSED TO BLAST
         if (this.gamePhase == 3) {
             console.log("PHASE 3");
             if (!this.swarmUnite) {
@@ -438,30 +440,132 @@ class Play extends Phaser.Scene {
                 this.gamePhase = 5;
             }
         }
-        // PHASE 5: GAME COMPLETE
-        if (this.gamePhase == 4) {
-            console.log("GAME COMPLETE");
-        }
-        // respawn ship
+
+        // respawn ship when asteroids/aliens leave
         if (
             !this.ship.active &&
             !this.asteroids.find((asteroid) => asteroid.active) &&
             !this.aliens.find((alien) => alien.active)
         ) {
+            // respawn ship
             if (this.ship.lives > 0) {
                 this.ship.lives -= 1;
                 console.log("HAS " + this.ship.lives + " LIVES LEFT");
                 this.lives[this.ship.lives].setVisible(false);
                 this.ship.spawn(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
             }
-            if (this.ship.lives == 0) {
-                console.log("game over");
-            }
         }
 
+        // GAME OVER
+        if (this.gamePhase == 4 && this.ship.lives == 0 && !this.ship.active) {
+            console.log("GAME OVERRRR");
+
+            this.gamePhase = 5;
+        }
+        // update score text
         this.scoreTxt
             .setText("score:" + this.score)
             .setCharacterTint(6, -1, true, "0xFFFFFF");
+
+        // PHASE 5: GAME COMPLETE
+        if (this.gamePhase == 5) {
+            this.gameEnd();
+            this.gamePhase = 6;
+        }
+
+        if (this.gamePhase == 7) {
+            this.pressToRestart();
+        }
+    }
+
+    // show score
+    gameEnd() {
+        this.endTxt = this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 2, // y
+                "VCROSDMono", // key
+                "", // text
+                105, // size
+                1 // align
+            )
+            .setOrigin(0.5, 0.5)
+            // .setDropShadow(1, 2, "0xFF0000", 123)
+            .setCharacterTint(0, -1, true, "0xFFFFFF");
+
+        if (this.ship.lives == 0 && !this.ship.active) {
+            this.endTxt
+                .setText("GAME\nOVER")
+                .setCharacterTint(0, -1, true, "0xFFFFFF");
+        } else {
+            this.endTxt
+                .setText("LEVEL\nCOMPLETE")
+                .setCharacterTint(0, -1, true, "0xFFFFFF");
+        }
+
+        this.sound.play("sfx-complete");
+
+        this.tweens.add({
+            targets: this.endTxt,
+            duration: 200,
+            delay: 1000,
+            alpha: 0,
+            ease: "Sine.easeInOut",
+            onComplete: () => {
+                this.time.delayedCall(200, () => {
+                    this.displayScore();
+                });
+            },
+        });
+    }
+
+    displayScore() {
+        const text = this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 2, // y
+                "VCROSDMono",
+                0,
+                64
+            )
+            .setOrigin(0.5, 0.5)
+            .setCharacterTint(0, -1, true, "0xFFFFFF");
+        this.sound.play("sfx-complete");
+
+        this.scoreCounter = this.tweens.addCounter({
+            from: 0,
+            to: this.score,
+            duration: (this.score / 1000) * 100,
+            delay: 1000,
+            ease: "Sine.easeOut",
+            onUpdate: () => {
+                text.setText([
+                    Math.floor(this.scoreCounter.getValue()),
+                ]).setCharacterTint(0, -1, true, "0xFFFFFF");
+            },
+
+            onComplete: () => {
+                this.gamePhase = 7;
+            },
+        });
+    }
+
+    pressToRestart() {
+        const text = this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                (game.config.height / 3) * 2, // y
+                "VCROSDMono",
+                "PRESS [SPACE] TO RETURN TO MENU",
+                21
+            )
+            .setOrigin(0.5, 0.5)
+            .setCharacterTint(0, -1, true, "0xFFFFFF");
+        if (keys.SPACE.isDown) {
+            this.scene.start("menuScene", {
+                backgroundY: this.background.tilePositionY,
+            });
+        }
     }
 
     circleSwarm(x, y) {
