@@ -14,8 +14,9 @@ class Play extends Phaser.Scene {
         this.background.tilePositionY = data.backgroundY;
         this.timeSinceMove = 0;
 
-        // input ------------------------------------------------------------------
-        cursors = this.input.keyboard.createCursorKeys();
+        this.alienExplosion =
+            // input ------------------------------------------------------------------
+            cursors = this.input.keyboard.createCursorKeys();
         keys = this.input.keyboard.addKeys({
             W: Phaser.Input.Keyboard.KeyCodes.W,
             A: Phaser.Input.Keyboard.KeyCodes.A,
@@ -39,6 +40,7 @@ class Play extends Phaser.Scene {
         this.asteroidCollisionCategory = this.matter.world.nextCategory();
         this.blastCollisionCategory = this.matter.world.nextCategory();
         this.shipCollisionCategory = this.matter.world.nextCategory();
+        this.laserCollisionCategory = this.matter.world.nextCategory();
 
         // add ship ------------------------------------------------------------------
         this.shipSpawnPoint = new Phaser.Math.Vector2(
@@ -51,9 +53,6 @@ class Play extends Phaser.Scene {
         // this.ship.setCollidesWith([]);
         this.ship.spawn(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
         // add laser
-        this.laser = new Laser(this, 0, 0, "Laser", {
-            isSensor: true,
-        });
 
         // basic aliens ------------------------------------------------------------------
         this.aliens = [];
@@ -79,7 +78,7 @@ class Play extends Phaser.Scene {
             alien.setCollisionCategory(this.alienCollisionCategory);
             alien.setCollidesWith([
                 this.shipCollisionCategory,
-                // this.blastCollisionCategory,
+                this.laserCollisionCategory,
             ]);
 
             this.aliens.push(alien);
@@ -112,6 +111,7 @@ class Play extends Phaser.Scene {
                 this.alienCollisionCategory,
                 this.shipCollisionCategory,
                 this.blastCollisionCategory,
+                this.laserCollisionCategory,
             ]);
 
             this.alienSwarm.push(smallAlien);
@@ -172,8 +172,7 @@ class Play extends Phaser.Scene {
             // }
 
             if (pointer.rightButtonDown()) {
-                // console.log(this.textures.getFrame("laser", 1));
-                this.laser.charge(this.ship.x, this.ship.y, this.ship.rotation);
+                this.laser.stop();
             }
 
             // move to
@@ -319,7 +318,7 @@ class Play extends Phaser.Scene {
             }
             // next phase
             if (this.asteroidsSpawned >= 500) {
-                this.gamePhase++;
+                this.gamePhase = 2;
             }
         }
         this.lastSpawned += delta;
@@ -353,7 +352,6 @@ class Play extends Phaser.Scene {
                 this.ship.fixed = true;
                 this.ship.moveTo(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
                 this.ship.rotateTo(-90);
-                this.ship.setCollisionCategory();
 
                 this.gamePhase = 3;
             }
@@ -387,11 +385,7 @@ class Play extends Phaser.Scene {
                             alien.setSensor(false);
                         }
                     });
-                    this.time.delayedCall(200, () => {
-                        this.ship.setCollisionCategory(
-                            this.shipCollisionCategory
-                        );
-                    });
+
                     this.gamePhase = 4;
                     this.waypoints.forEach((point) => {
                         point.setActive(true);
@@ -400,7 +394,7 @@ class Play extends Phaser.Scene {
                 this.swarmUnite = true;
             }
         }
-
+        // PHASE 3: MEGA BOSS
         if (this.gamePhase == 4) {
             this.inSwarm = this.alienSwarm.filter(
                 (alien) => alien.data.values["swarm"]
@@ -443,6 +437,10 @@ class Play extends Phaser.Scene {
                 console.log(this.inSwarm);
                 this.gamePhase = 5;
             }
+        }
+        // PHASE 5: GAME COMPLETE
+        if (this.gamePhase == 4) {
+            console.log("GAME COMPLETE");
         }
         // respawn ship
         if (

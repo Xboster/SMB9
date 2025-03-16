@@ -86,8 +86,8 @@ class Load extends Phaser.Scene {
         this.fireLaser = this.anims.create({
             key: "fire",
             frames: this.anims.generateFrameNumbers("laser", {
-                start: 6,
-                end: 8,
+                start: 7,
+                end: 7,
             }),
             frameRate: 10,
             repeat: 0,

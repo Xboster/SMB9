@@ -1,24 +1,32 @@
 class Laser extends Phaser.Physics.Matter.Sprite {
     constructor(scene, x, y, texture, options) {
         super(scene.matter.world, x, y, texture, null, options);
-
-        this.setFriction(0);
-        this.setFrictionAir(0);
-        this.setFixedRotation();
         this.setActive(false);
         this.setVisible(false);
 
-        this.laser = [];
-        for (let i = 0; i < 8; i++) {
-            this.laser.push(
-                this.scene.add
-                    .sprite(this.x, this.y, "laser", 8, {
+        this.line = new Phaser.Geom.Line(0, 0, 0, 0);
+
+        this.length = 16;
+
+        this.segments = this.scene.add.group();
+        for (let i = 0; i < this.length; i++) {
+            this.segments.add(
+                this.scene.matter.add
+                    .sprite(0, 0, "laser", 8, {
                         isSensor: true,
+                        shape: {
+                            type: "rectangle",
+                            width: 64,
+                            height: 32,
+                        },
                     })
-                    .setAngle(-90)
+                    .setCollisionCategory(this.scene.laserCollisionCategory)
+                    .setActive(false)
+                    .setVisible(false)
             );
         }
 
+        this.charging = false;
         this.charged = false;
         this.firing = false;
 
@@ -28,32 +36,56 @@ class Laser extends Phaser.Physics.Matter.Sprite {
 
         this.scene.matter.world.on("collisionstart", this.onCollision, this);
     }
+    stop() {
+        this.charged = false;
+        this.firing = false;
 
-    charge(x, y, angle) {
-        this.scene.matter.world.add(this.body);
-        this.setActive(true);
-        this.setVisible(true);
+        this.setActive(false);
+        this.setVisible(false);
+        this.world.remove(this.body, true);
 
-        this.anims.play("charge");
+        this.segments.getChildren().forEach((segment) => {
+            segment.setActive(false);
+            segment.setVisible(false);
+            segment.world.remove(segment.body, true);
+        });
+    }
+    charge() {
+        if (!this.charging) {
+            this.charging = true;
+            this.setActive(true);
+            this.setVisible(true);
+            this.scene.matter.world.add(this.body);
+
+            this.anims.play("charge");
+            this.on("animationcomplete", () => {
+                this.charged = true;
+            });
+        }
     }
     fire() {
-        for (let i = 0; i < 8; i++) {
-            let dx = this.x - this.laser[i].x;
-            let dy = this.y - this.laser[i].y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance > 0) {
-                dx /= distance;
-                dy /= distance;
-            }
-            this.laser[i].setPosition(
-                this.x + 64 * i * Math.cos(this.rotation),
-                this.y + 64 * i * Math.sin(this.rotation)
+        if (this.charged && this.firing) {
+            this.setCollisionCategory(this.scene.laserCollisionCategory);
+            this.anims.play("fire");
+            this.setRotation(this.scene.ship.rotation);
+            this.line = new Phaser.Geom.Line(
+                this.x + 64 * Math.cos(this.scene.ship.rotation),
+                this.y + 64 * Math.sin(this.scene.ship.rotation),
+                this.x +
+                    64 * Math.cos(this.scene.ship.rotation) * this.length +
+                    1 * 0.99,
+                this.y +
+                    64 * Math.sin(this.scene.ship.rotation) * this.length +
+                    1 * 0.99
             );
-            this.laser[i].setRotation(this.rotation);
+            Phaser.Actions.PlaceOnLine(this.segments.getChildren(), this.line);
+            this.segments.getChildren().forEach((segment) => {
+                segment.setRotation(this.rotation);
+                segment.setActive(true);
+                segment.setVisible(true);
+            });
+            this.firing = true;
         }
-
-        console.log("laser");
     }
 
     onCollision(event) {
@@ -84,12 +116,10 @@ class Laser extends Phaser.Physics.Matter.Sprite {
             );
             this.setRotation(this.scene.ship.rotation);
         } else {
-            this.charged = false;
-            this.firing = false;
-
-            this.setActive(false);
-            this.setVisible(false);
-            this.world.remove(this.body, true);
+            this.stop();
+        }
+        if (this.firing) {
+            this.fire();
         }
     }
 }

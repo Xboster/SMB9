@@ -91,7 +91,9 @@ class Alien extends Phaser.Physics.Matter.Sprite {
 
                 if (
                     otherBody.collisionFilter.category ===
-                    this.scene.blastCollisionCategory
+                        this.scene.blastCollisionCategory ||
+                    otherBody.collisionFilter.category ===
+                        this.scene.laserCollisionCategory
                 ) {
                     // update score
                     if (this.data.values["mother"]) {
@@ -101,8 +103,12 @@ class Alien extends Phaser.Physics.Matter.Sprite {
                     } else {
                         this.scene.score += 500;
                     }
-
-                    this.scene.sound.setVolume(0.7).play("sfx-explosion2");
+                    if (
+                        otherBody.collisionFilter.category ===
+                        this.scene.blastCollisionCategory
+                    ) {
+                        this.scene.sound.setVolume(0.7).play("sfx-explosion2");
+                    }
                     this.despawn();
                 }
             }
