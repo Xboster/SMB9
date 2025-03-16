@@ -11,13 +11,15 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.setRotation(-Math.PI / 2);
         this.fixed = true;
 
-        this.lives = 2;
+        this.lives = 3;
         this.isCharging = false;
         this.chargeStartTime = 0;
         this.chargeAmount = 0;
         this.maxChargeTime = 1000; // 1 second for full charge
 
         this.laser;
+
+        this.respawnDelay = 0;
 
         this.scene.add.existing(this);
 
@@ -27,21 +29,25 @@ class Ship extends Phaser.Physics.Matter.Sprite {
     }
 
     spawn(x, y) {
-        this.scene.matter.world.add(this.body);
+        if (this.respawnDelay <= 0) {
+            this.scene.matter.world.add(this.body);
 
-        this.setPosition(x, y);
-        this.setActive(true);
-        this.setVisible(true);
+            this.setPosition(x, y);
+            this.setActive(true);
+            this.setVisible(true);
 
-        this.fixed = true;
-        this.setRotation(-Math.PI / 2);
+            this.fixed = true;
+            this.setRotation(-Math.PI / 2);
 
-        this.setFriction(0);
-        this.setFrictionAir(0.1);
-        this.setMass(5);
-        this.setFixedRotation();
-        this.setVelocity(0, 0);
-        this.setAngularVelocity(0);
+            this.setFriction(0);
+            this.setFrictionAir(0.5);
+            this.setMass(50);
+            this.setFixedRotation();
+            this.setVelocity(0, 0);
+            this.setAngularVelocity(0);
+            this.lives -= 1;
+            this.respawnDelay = 3000;
+        }
     }
 
     moveTo(x, y) {
@@ -88,6 +94,7 @@ class Ship extends Phaser.Physics.Matter.Sprite {
                     this.setActive(false);
                     this.setVisible(false);
                     this.world.remove(this.body, true);
+                    this.respawnDelay = 3000;
                 }
             }
         });
@@ -131,32 +138,32 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         super.preUpdate(time, delta);
         // ship movement
         if (keys.W.isDown || cursors.up.isDown) {
-            this.thrust(0.01);
+            this.thrust(0.5);
             // console.log(this.angle);
         }
         if (keys.S.isDown || cursors.down.isDown) {
-            this.thrust(-0.01);
+            this.thrust(-0.5);
             // console.log(this.angle);
         }
         if (keys.A.isDown || cursors.left.isDown) {
             if (this.fixed) {
-                this.thrustLeft(0.01);
+                this.thrustLeft(0.5);
             } else {
-                this.setAngularVelocity(-0.05);
+                this.setAngularVelocity(-0.2);
             }
         }
         if (keys.D.isDown || cursors.right.isDown) {
             if (this.fixed) {
-                this.thrustRight(0.01);
+                this.thrustRight(0.5);
             } else {
-                this.setAngularVelocity(0.05);
+                this.setAngularVelocity(0.2);
             }
         }
 
         if (keys.Q.isDown) {
-            this.setAngularVelocity(-0.05);
+            this.setAngularVelocity(-0.2);
         } else if (keys.E.isDown) {
-            this.setAngularVelocity(0.05);
+            this.setAngularVelocity(0.2);
         }
 
         if (Phaser.Input.Keyboard.JustDown(keys.SPACE)) {

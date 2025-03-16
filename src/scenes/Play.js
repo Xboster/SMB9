@@ -172,9 +172,12 @@ class Play extends Phaser.Scene {
             // }
 
             if (pointer.rightButtonDown()) {
-                console.log(this.ship.lives);
-                console.log(this.ship.active);
-                this.gameEnd();
+                // console.log(this.gamePhase);
+                // console.log(this.ship.lives);
+                // console.log(this.ship.active);
+                this.displayScore();
+                // this.pressToRestart();
+                this.enterScore();
             }
 
             // move to
@@ -219,7 +222,7 @@ class Play extends Phaser.Scene {
 
         this.lastSpawned = 0;
         this.spawnInterval = 500;
-        this.asteroidsSpawned = 400;
+        this.asteroidsSpawned = 500;
         this.swarmSpawned = false;
         this.swarmActive = false;
         this.gamePhase = 1;
@@ -440,24 +443,27 @@ class Play extends Phaser.Scene {
                 this.gamePhase = 5;
             }
         }
-
+        console.log(this.ship.lives);
         // respawn ship when asteroids/aliens leave
         if (
             !this.ship.active &&
             !this.asteroids.find((asteroid) => asteroid.active) &&
-            !this.aliens.find((alien) => alien.active)
+            !this.aliens.find((alien) => alien.active) &&
+            !this.ship.respawnDelay <= 0
         ) {
             // respawn ship
-            if (this.ship.lives > 0) {
-                this.ship.lives -= 1;
+            if (this.ship.lives >= 0) {
                 console.log("HAS " + this.ship.lives + " LIVES LEFT");
-                this.lives[this.ship.lives].setVisible(false);
+                this.lives[this.ship.lives - 1].setVisible(false);
                 this.ship.spawn(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
             }
         }
+        if (this.ship.respawnDelay > 0) {
+            this.ship.respawnDelay -= delta;
+        }
 
         // GAME OVER
-        if (this.gamePhase == 4 && this.ship.lives == 0 && !this.ship.active) {
+        if (this.gamePhase <= 4 && this.ship.lives == 0 && !this.ship.active) {
             console.log("GAME OVERRRR");
 
             this.gamePhase = 5;
@@ -472,9 +478,11 @@ class Play extends Phaser.Scene {
             this.gameEnd();
             this.gamePhase = 6;
         }
-
+        // ENTER SCORE
         if (this.gamePhase == 7) {
-            this.pressToRestart();
+            // this.pressToRestart();
+            this.enterScore();
+            this.gamePhase = 8;
         }
     }
 
@@ -549,7 +557,46 @@ class Play extends Phaser.Scene {
             },
         });
     }
+    enterScore() {
+        this.add
+            .bitmapText(
+                game.config.width / 4,
+                (game.config.height / 3) * 2,
+                "VCROSDMono",
+                "ENTER NAME:\nPRESS ENTER TO SUBMIT SCORE",
+                21,
+                0
+            )
+            .setOrigin(0, 0.5)
+            .setCharacterTint(0, -1, true, "0xFFFFFF");
 
+        var textEntry = this.add
+            .bitmapText(
+                game.config.width / 3 + 83,
+                (game.config.height / 3) * 2 - 21,
+                "VCROSDMono",
+                "",
+                21,
+                0
+            )
+            .setCharacterTint(0, -1, true, "0xFFFFFF");
+
+        this.input.keyboard.on("keydown", function (event) {
+            if (event.keyCode === 8 && textEntry.text.length > 0) {
+                textEntry.text = textEntry.text.substr(
+                    0,
+                    textEntry.text.length - 1
+                );
+            } else if (
+                event.keyCode === 32 ||
+                (event.keyCode >= 48 && event.keyCode < 90)
+            ) {
+                textEntry.text += event.key;
+
+                textEntry.setCharacterTint(0, -1, true, "0xFFFFFF");
+            }
+        });
+    }
     pressToRestart() {
         const text = this.add
             .bitmapText(
@@ -611,5 +658,24 @@ class Play extends Phaser.Scene {
                 );
             },
         });
+    }
+
+    saveFile() {
+        var file = {
+            names: [""],
+            scores: [""],
+        };
+        localStorage.setItem("scores", JSON.stringify(file));
+    }
+    loadFile() {
+        var file = JSON.parse(localStorage.getItem("scores"));
+        this.scene.score = file.score;
+        this.scene.visits = file.visits;
+    }
+
+    updateFile(score) {
+        this.score += increment;
+        this.scoreTxt.setText(Game.scene.score);
+        localStorage.setItem("score", Game.scene.score);
     }
 }

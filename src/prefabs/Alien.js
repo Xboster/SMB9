@@ -10,6 +10,8 @@ class Alien extends Phaser.Physics.Matter.Sprite {
         this.setActive(false);
         this.setVisible(false);
 
+        this.idle = 0;
+
         this.scene.add.existing(this);
 
         this.scene.matter.world.remove(this.body, true);
@@ -51,7 +53,7 @@ class Alien extends Phaser.Physics.Matter.Sprite {
         this.world.remove(this.body, true);
     }
 
-    moveTo(x = 0, y = 0, speed = 0) {
+    moveTo(x = 0, y = 0) {
         this.setSensor(true);
         this.scene.tweens.add({
             targets: this,
@@ -68,6 +70,8 @@ class Alien extends Phaser.Physics.Matter.Sprite {
     }
 
     seek(x, y, speed = 0) {
+        // attack ship
+        // if (!idle) {
         let dx = x - this.x;
         let dy = y - this.y;
         let distance = Math.sqrt(dx * dx + dy * dy);
@@ -81,6 +85,7 @@ class Alien extends Phaser.Physics.Matter.Sprite {
             this.setVelocityX(0);
             this.setVelocityY(0);
         }
+        // }
     }
 
     onCollision(event) {

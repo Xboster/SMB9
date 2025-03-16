@@ -90,6 +90,7 @@ class Menu extends Phaser.Scene {
             if (this.menuSelection > 0) {
                 this.menuSelection -= 1;
                 // console.log(this.option[this.menuSelection]);
+                this.saveFile();
             }
         }
         if (Phaser.Input.Keyboard.JustDown(keys.S)) {
@@ -131,5 +132,23 @@ class Menu extends Phaser.Scene {
                 });
             }
         }
+    }
+    saveFile() {
+        var file = {
+            names: [""],
+            scores: [""],
+        };
+        localStorage.setItem("scores", JSON.stringify(file));
+    }
+    loadFile() {
+        var file = JSON.parse(localStorage.getItem("scores"));
+        this.scene.score = file.score;
+        this.scene.visits = file.visits;
+    }
+
+    updateFile(score) {
+        this.score += increment;
+        this.scoreTxt.setText(Game.scene.score);
+        localStorage.setItem("score", Game.scene.score);
     }
 }
