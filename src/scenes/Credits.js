@@ -72,6 +72,7 @@ class Credits extends Phaser.Scene {
             .setCharacterTint(0, -1, true, "0xFFFFFF");
 
         this.input.keyboard.on("keydown-SPACE", () => {
+            this.sound.play("sfx-select2");
             this.scene.start("menuScene", {
                 backgroundY: this.background.tilePositionY,
             });

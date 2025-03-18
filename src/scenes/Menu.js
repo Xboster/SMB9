@@ -8,9 +8,6 @@ class Menu extends Phaser.Scene {
     preload() {}
     create(data) {
         this.input.mouse.disableContextMenu();
-        // width: 720,
-        // height: 540,
-        // this.scale.setGameSize(720, 540);
 
         this.background = this.add
             .tileSprite(0, 0, 1024, 1024, "background")
@@ -19,6 +16,22 @@ class Menu extends Phaser.Scene {
         if (data.backgroundY) {
             this.background.tilePositionY = data.backgroundY;
         }
+        // asteroids ------------------------------------------------------------------
+        this.asteroids = [];
+        for (let i = 0; i < 64; i++) {
+            const asteroid = new Asteroid(this, 0, 0, "asteroid", {
+                isSensor: true,
+            });
+            asteroid.setInteractive({ useHandCursor: true });
+            asteroid.on("pointerdown", () => {
+                asteroid.anims.play("idle");
+                asteroid.preFX.clear();
+                asteroid.preFX.addGlow(0x00ff00, 1, 0, false);
+            });
+            this.asteroids.push(asteroid);
+        }
+        this.lastSpawned = 0;
+        this.spawnInterval = 500;
 
         this.option = ["PLAY ", "SCORES ", "CREDITS "];
         // TITLE
@@ -68,6 +81,10 @@ class Menu extends Phaser.Scene {
             )
             .setCharacterTint(0, -1, true, "0xFFFFFF");
 
+        this.playTxt.setInteractive({ useHandCursor: true });
+        this.scoresTxt.setInteractive({ useHandCursor: true });
+        this.creditsTxt.setInteractive({ useHandCursor: true });
+
         cursors = this.input.keyboard.createCursorKeys();
         keys = this.input.keyboard.addKeys({
             W: Phaser.Input.Keyboard.KeyCodes.W,
@@ -76,31 +93,68 @@ class Menu extends Phaser.Scene {
         });
 
         this.menuSelection = 0;
+        this.buttonPressed = false;
+        this.sfxSelect = this.sound.add("sfx-select");
     }
     update(time, delta) {
         this.timeSinceMove += delta;
         if (this.timeSinceMove > 10) {
             this.background.tilePositionY -= 1;
             this.timeSinceMove = 0;
-            // console.log(this.background.tilePositionY);
         }
 
-        // this.playTxt = this.option[0];
-        // this.scoresTxt = this.option[1];
-        // this.creditsTxt = this.option[2];
-
-        if (Phaser.Input.Keyboard.JustDown(keys.W)) {
+        if (
+            Phaser.Input.Keyboard.JustDown(keys.W) ||
+            Phaser.Input.Keyboard.JustDown(cursors.up)
+        ) {
             if (this.menuSelection > 0) {
                 this.menuSelection -= 1;
-                // console.log(this.option[this.menuSelection]);
+                this.sfxSelect.play();
             }
         }
-        if (Phaser.Input.Keyboard.JustDown(keys.S)) {
+        if (
+            Phaser.Input.Keyboard.JustDown(keys.S) ||
+            Phaser.Input.Keyboard.JustDown(cursors.down)
+        ) {
             if (this.menuSelection < this.option.length - 1) {
                 this.menuSelection += 1;
-                // console.log(this.option[this.menuSelection]);
+                this.sfxSelect.play();
             }
         }
+
+        this.playTxt.on("pointerover", () => {
+            if (this.menuSelection != 0) {
+                this.sfxSelect.play();
+            }
+            this.menuSelection = 0;
+        });
+
+        this.scoresTxt.on("pointerover", () => {
+            if (this.menuSelection != 1) {
+                this.sfxSelect.play();
+            }
+            this.menuSelection = 1;
+        });
+
+        this.creditsTxt.on("pointerover", () => {
+            if (this.menuSelection != 2) {
+                this.sfxSelect.play();
+            }
+            this.menuSelection = 2;
+        });
+
+        this.playTxt.on("pointerdown", () => {
+            this.buttonPressed = true;
+        });
+
+        this.scoresTxt.on("pointerdown", () => {
+            this.buttonPressed = true;
+        });
+
+        this.creditsTxt.on("pointerdown", () => {
+            this.buttonPressed = true;
+        });
+
         if (this.menuSelection == 0) {
             this.playTxt.setText(">PLAY");
         } else {
@@ -117,7 +171,8 @@ class Menu extends Phaser.Scene {
             this.creditsTxt.setText(" CREDITS");
         }
 
-        if (Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
+        if (Phaser.Input.Keyboard.JustDown(keys.SPACE) || this.buttonPressed) {
+            this.sound.play("sfx-select2");
             if (this.menuSelection == 0) {
                 this.scene.start("playScene", {
                     backgroundY: this.background.tilePositionY,
@@ -134,10 +189,30 @@ class Menu extends Phaser.Scene {
                 });
             }
         }
+
+        if (this.lastSpawned > this.spawnInterval) {
+            const asteroid = this.asteroids.find(
+                (asteroid) => !asteroid.active
+            );
+            if (asteroid) {
+                asteroid.spawn(
+                    asteroid.width / 2 +
+                        Math.random() * (game.config.width - asteroid.width),
+                    -100,
+                    (Math.PI * 2) / 4,
+                    3
+                );
+                this.lastSpawned = 0;
+                asteroid.setTexture("asteroid");
+                asteroid.stop();
+                asteroid.preFX.clear();
+            }
+        }
+        this.lastSpawned += delta;
     }
     saveFile() {
         var file = {
-            LEON: "9999999",
+            LEON: "136850",
             COCO: "225000",
             WILT: "215000",
             FRANKIE: "205000",
@@ -151,7 +226,6 @@ class Menu extends Phaser.Scene {
         if (!localStorage.getItem("scores")) {
             localStorage.setItem("scores", JSON.stringify(file));
         }
-        console.log(localStorage.getItem("scores"));
     }
     loadFile() {
         var file = JSON.parse(localStorage.getItem("scores"));

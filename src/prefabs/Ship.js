@@ -6,7 +6,7 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.setVisible(false);
 
         this.setPolygon(28, 3);
-        this.setOrigin(0.41, 0.5);
+        this.setOrigin(0.55, 0.5);
         this.body.angle = Math.PI;
         this.setRotation(-Math.PI / 2);
         this.fixed = true;
@@ -133,21 +133,22 @@ class Ship extends Phaser.Physics.Matter.Sprite {
             this.scene.time.delayedCall(1000, () => {
                 this.laser.stop();
             });
+            this.scene.hold = true;
         }
     }
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
         // ship movement
         if (
-            keys.W.isDown ||
-            (cursors.up.isDown && this.verticalMovementEnabled)
+            (keys.W.isDown || cursors.up.isDown) &&
+            this.verticalMovementEnabled
         ) {
             this.thrust(0.5);
             // console.log(this.angle);
         }
         if (
-            keys.S.isDown ||
-            (cursors.down.isDown && this.verticalMovementEnabled)
+            (keys.S.isDown || cursors.down.isDown) &&
+            this.verticalMovementEnabled
         ) {
             this.thrust(-0.5);
             // console.log(this.angle);
@@ -183,6 +184,7 @@ class Ship extends Phaser.Physics.Matter.Sprite {
             this.laser = new Laser(this.scene, 0, 0, "Laser", {
                 isSensor: true,
             });
+            this.scene.tap = true;
         }
         if (this.isCharging && keys.SPACE.isDown) {
             this.chargeAmount = Math.min(
@@ -193,7 +195,6 @@ class Ship extends Phaser.Physics.Matter.Sprite {
             if (this.chargeAmount >= 0.8) {
                 this.laser.charge();
             }
-            // console.log(this.chargeAmount);
         }
         if (this.isCharging && Phaser.Input.Keyboard.JustUp(keys.SPACE)) {
             this.fireProjectile();

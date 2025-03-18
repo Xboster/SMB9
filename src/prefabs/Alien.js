@@ -36,8 +36,8 @@ class Alien extends Phaser.Physics.Matter.Sprite {
                 dy /= distance;
             }
 
-            this.setVelocityX(speed * Math.cos(angle) + dx * -5);
-            this.setVelocityY(speed * Math.sin(angle) + dy * -5);
+            this.setVelocityX(speed * Math.cos(angle) + dx * -3);
+            this.setVelocityY(speed * Math.sin(angle) + dy * -3);
         } else {
             this.setVelocityX(speed * Math.cos(angle));
             this.setVelocityY(speed * Math.sin(angle));
@@ -46,6 +46,14 @@ class Alien extends Phaser.Physics.Matter.Sprite {
         this.lifespan = lifespan;
     }
     despawn() {
+        this.scene.add
+            .particles(this.x, this.y, "green", {
+                lifespan: 250,
+                speed: { min: 50, max: 150 },
+                scale: { start: 1, end: 0 },
+                emitting: false,
+            })
+            .explode(32);
         this.setData("swarm", false);
         this.setData("mother", false);
         this.setActive(false);

@@ -1,10 +1,22 @@
 // Leon Ng
 //  Make the Fake: Super Mega Blasteroids 9
 
+// +5 Your game uses at least five of Phaser's major components
+// which may include: physics systems, cameras, particle effects, text objects,
+// the animation manager, the tween manager, timers, tilemaps, pipeline FX, etc.
+//
+// physics systems: matter
+// particle effects: for asteroids and aliens when they are hit
+// text objects: bitmap font text (VCR_OSD_MONO_1)
+// animation manager: ship rocket, laser, alien idle
+// tween manager: for moving aliens / ship
+// timers: delayed calls
+// pipeline FX: alien green glow
+
 const config = {
     type: Phaser.AUTO,
     scale: {
-        // mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         zoom: 1,
         width: 720,
@@ -44,7 +56,6 @@ const config = {
         min: 30,
         target: 60,
         limit: 60,
-        // forceSetTimeOut: true,
     },
 };
 

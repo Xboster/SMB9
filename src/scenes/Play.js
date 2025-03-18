@@ -5,7 +5,6 @@ class Play extends Phaser.Scene {
     init() {}
     preload() {}
     create(data) {
-        this.score = 0;
         this.input.mouse.disableContextMenu();
         // background
         this.background = this.add
@@ -26,14 +25,6 @@ class Play extends Phaser.Scene {
             SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
         });
 
-        // world bounds ------------------------------------------------------------------
-        // this.matter.world.setBounds(
-        //     0,
-        //     0,
-        //     game.config.width,
-        //     game.config.height
-        // );
-
         // collisions
         this.alienCollisionCategory = this.matter.world.nextCategory();
         this.asteroidCollisionCategory = this.matter.world.nextCategory();
@@ -47,7 +38,7 @@ class Play extends Phaser.Scene {
             (game.config.height / 20) * 19
         );
         this.ship = new Ship(this, 0, 0, "ship");
-
+        this.ship.anims.play("shipOn");
         this.ship.setCollisionCategory(this.shipCollisionCategory);
         // this.ship.setCollidesWith([]);
         this.ship.spawn(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
@@ -137,59 +128,6 @@ class Play extends Phaser.Scene {
             this.asteroids.push(asteroid);
         }
 
-        // spawn asteroid on click
-        this.input.on("pointerdown", (pointer) => {
-            const x = pointer.x;
-            const y = pointer.y;
-            // console.log(`Clicked at: x=${x}, y=${y}`);
-
-            // if (pointer.leftButtonDown()) {
-            //     const asteroid = this.asteroids.find(
-            //         (asteroid) => !asteroid.active
-            //     );
-            //     if (asteroid) {
-            //         asteroid.spawn(x, y, (Math.PI * 2) / 4, 3);
-            //     }
-            // }
-
-            // normal alien
-            // if (pointer.rightButtonDown()) {
-            //     const alien = this.aliens.find((alien) => !alien.active);
-            //     if (alien) {
-            //         alien.spawn(x, y, (Math.PI * 2) / 4, 3);
-            //     }
-            // }
-
-            // splitting alien
-            // if (pointer.rightButtonDown()) {
-            //     const smallAlien = this.alienSwarm.find(
-            //         (smallAlien) => !smallAlien.active
-            //     );
-            //     if (smallAlien) {
-            //         smallAlien.spawn(x, y, (Math.PI * 2) / 4, 3);
-            //     }
-            // }
-
-            if (pointer.rightButtonDown()) {
-                // this.inSwarm = this.alienSwarm.filter(
-                //     (alien) => alien.data.values["swarm"]
-                // );
-                // this.inSwarm.forEach((alien) => {
-                //     alien.moveXY(-10, 0, 2000);
-                // });
-
-                // console.log(
-                //     "SWARM X:" + this.centerX + " SHIP X:" + this.ship.x
-                // );
-                console.log(
-                    "SWARM Y:" + this.centerY + " SHIP Y:" + this.ship.y
-                );
-            }
-
-            if (pointer.leftButtonDown()) {
-            }
-        });
-
         // UI TEXT
         this.scoreTxt = this.add
             .bitmapText(
@@ -209,22 +147,42 @@ class Play extends Phaser.Scene {
         for (let i = 1; i <= this.ship.lives; i++) {
             this.lives.push(
                 this.add
-                    .image(game.config.width - 20 * i, 20, "ship")
+                    .image(game.config.width - 20 * i, 20, "ship", 3)
                     .setAngle(-90)
                     .setScale(1 / 3)
                     .setTint(0xff0000)
             );
         }
+        this.tutorialText = this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 4, // y
+                "VCROSDMono", // key
+                "USE WASD OR\nARROW KEYS TO MOVE", // text
+                42, // size
+                1 // align
+            )
+            .setOrigin(0.5)
+            .setCharacterTint(0, -1, true, "0xFFFFFF");
 
+        this.score = 0;
         this.lastSpawned = 0;
         this.spawnInterval = 500;
-        this.asteroidsSpawned = 499;
+        this.asteroidsSpawned = 0;
         this.swarmSpawned = false;
         this.swarmActive = false;
-        this.gamePhase = 1;
+        this.gamePhase = 0;
         this.inSwarm = [];
         this.swarmUnite = false;
         this.points = [];
+        // tutorial
+        this.up = false;
+        this.down = false;
+        this.left = false;
+        this.right = false;
+        this.doneMovement = false;
+        this.tap = false;
+        this.hold = false;
 
         // create points
         for (let i = 0; i < 12; i++) {
@@ -273,7 +231,7 @@ class Play extends Phaser.Scene {
                 }
             });
         });
-        console.log(total);
+        // console.log(total);
     }
     update(time, delta) {
         // console.log("FPS:", this.game.loop.actualFps);
@@ -295,11 +253,68 @@ class Play extends Phaser.Scene {
         //     }
         // }
 
+        // PHASE 0: Tutorial
+        if (this.gamePhase == 0) {
+            if (!this.doneMovement) {
+                this.tutorialText
+                    .setText("USE WASD OR\nARROW KEYS TO MOVE")
+                    .setOrigin(0.5)
+                    .setCharacterTint(0, -1, true, "0xFFFFFF");
+            }
+
+            if (
+                Phaser.Input.Keyboard.JustDown(keys.W) ||
+                Phaser.Input.Keyboard.JustDown(cursors.up)
+            ) {
+                this.up = true;
+            }
+            if (
+                Phaser.Input.Keyboard.JustDown(keys.A) ||
+                Phaser.Input.Keyboard.JustDown(cursors.left)
+            ) {
+                this.left = true;
+            }
+            if (
+                Phaser.Input.Keyboard.JustDown(keys.S) ||
+                Phaser.Input.Keyboard.JustDown(cursors.down)
+            ) {
+                this.down = true;
+            }
+            if (
+                Phaser.Input.Keyboard.JustDown(keys.D) ||
+                Phaser.Input.Keyboard.JustDown(cursors.right)
+            ) {
+                this.right = true;
+            }
+
+            if (
+                this.up &&
+                this.down &&
+                this.left &&
+                this.right &&
+                !this.doneMovement
+            ) {
+                this.doneMovement = true;
+                this.tap = false;
+                this.hold = false;
+                this.tutorialText
+                    .setText(
+                        "TAP SPACE TO SHOOT\nHOLD SPACE TO CHARGE LASER\nLET GO TO FIRE LASER"
+                    )
+                    .setCharacterTint(0, -1, true, "0xFFFFFF");
+            }
+
+            if (this.tap && this.hold && this.doneMovement) {
+                this.tutorialText.destroy();
+                this.gamePhase = 1;
+            }
+        }
+
         // PHASE 1: random asteroid spawn
         if (
             this.gamePhase == 1 &&
             this.ship.active &&
-            this.lastSpawned > this.spawnInterval + 100 &&
+            this.lastSpawned > this.spawnInterval + 150 &&
             this.asteroidsSpawned < 500
         ) {
             const asteroid = this.asteroids.find(
@@ -316,7 +331,7 @@ class Play extends Phaser.Scene {
                 this.lastSpawned = 0;
                 if (this.spawnInterval > 0) this.spawnInterval -= 10;
                 this.asteroidsSpawned += 1;
-                console.log(this.asteroidsSpawned);
+                // console.log(this.asteroidsSpawned);
             }
             // next phase
             if (this.asteroidsSpawned >= 500) {
@@ -345,6 +360,10 @@ class Play extends Phaser.Scene {
                 this.swarmSpawned = true;
             }
 
+            // disable vetrical movement
+            this.ship.verticalMovementEnabled = false;
+            this.ship.anims.play("shipOff");
+
             // when all swarm parents dead
             if (
                 this.swarmSpawned &&
@@ -363,6 +382,7 @@ class Play extends Phaser.Scene {
         // PHASE 3: SPAWN BIG EVIL BLASTER THING AT THE END THAT YOURE SUPPOSED TO BLAST
         if (this.gamePhase == 3) {
             this.uniteSwarm();
+            this.sound.play("sfx-swarm");
             this.gamePhase = 4;
         }
         // PHASE 4: MEGA BOSS
@@ -418,7 +438,7 @@ class Play extends Phaser.Scene {
         ) {
             // respawn ship
             if (this.ship.lives > 0) {
-                console.log("HAS " + this.ship.lives + " LIVES LEFT");
+                console.log("LIVES REMAINING: " + this.ship.lives);
                 this.lives[this.ship.lives - 1].setVisible(false);
                 this.ship.spawn(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
             }
@@ -429,8 +449,7 @@ class Play extends Phaser.Scene {
 
         // GAME OVER
         if (this.gamePhase <= 4 && this.ship.lives == 0 && !this.ship.active) {
-            console.log("GAME OVERRRR");
-
+            console.log("GAME OVER");
             this.gamePhase = 5;
         }
         // update score text
@@ -495,13 +514,23 @@ class Play extends Phaser.Scene {
     }
 
     displayScore() {
-        const text = this.add
+        const scoreText = this.add
+            .bitmapText(
+                game.config.width / 2, // x
+                game.config.height / 3, // y
+                "VCROSDMono",
+                "SCORE",
+                63
+            )
+            .setOrigin(0.5, 0.5)
+            .setCharacterTint(0, -1, true, "0xFFFFFF");
+        const numberText = this.add
             .bitmapText(
                 game.config.width / 2, // x
                 game.config.height / 2, // y
                 "VCROSDMono",
                 0,
-                64
+                105
             )
             .setOrigin(0.5, 0.5)
             .setCharacterTint(0, -1, true, "0xFFFFFF");
@@ -514,9 +543,9 @@ class Play extends Phaser.Scene {
             delay: 1000,
             ease: "Sine.easeOut",
             onUpdate: () => {
-                text.setText([
-                    Math.floor(this.scoreCounter.getValue()),
-                ]).setCharacterTint(0, -1, true, "0xFFFFFF");
+                numberText
+                    .setText([Math.floor(this.scoreCounter.getValue())])
+                    .setCharacterTint(0, -1, true, "0xFFFFFF");
             },
 
             onComplete: () => {
@@ -662,7 +691,11 @@ class Play extends Phaser.Scene {
         var file = new Map(
             Object.entries(JSON.parse(localStorage.getItem("scores")))
         );
-        file.set(name, score);
+        // only update score if higher
+        if (file.get(name) < score) {
+            file.set(name, score);
+        }
+
         localStorage.setItem(
             "scores",
             JSON.stringify(Object.fromEntries(file))

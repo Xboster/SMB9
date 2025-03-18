@@ -30,6 +30,20 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
         this.lifespan = lifespan;
     }
 
+    despawn() {
+        this.scene.add
+            .particles(this.x, this.y, "brown", {
+                lifespan: 300,
+                speed: { min: 50, max: 150 },
+                scale: { start: 1, end: 0 },
+                emitting: false,
+            })
+            .explode(32);
+        this.setActive(false);
+        this.setVisible(false);
+        this.world.remove(this.body, true);
+    }
+
     onCollision(event) {
         event.pairs.forEach((pair) => {
             if (pair.bodyA === this.body || pair.bodyB === this.body) {
@@ -50,9 +64,7 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
 
                     // hide and remove asteroid
                     this.scene.sound.setVolume(0.7).play("sfx-explosion2");
-                    this.setActive(false);
-                    this.setVisible(false);
-                    this.world.remove(this.body, false);
+                    this.despawn();
                     // update score
                     this.scene.score += 150;
                 }
@@ -66,15 +78,11 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
         this.lifespan -= delta;
 
         if (this.lifespan <= 0) {
-            this.setActive(false);
-            this.setVisible(false);
-            this.world.remove(this.body, true);
+            this.despawn();
         }
 
         if (this.y - this.height > game.config.height) {
-            this.setActive(false);
-            this.setVisible(false);
-            this.world.remove(this.body, true);
+            this.despawn();
         }
     }
 }

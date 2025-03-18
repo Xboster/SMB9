@@ -71,8 +71,10 @@ class Laser extends Phaser.Physics.Matter.Sprite {
             this.line = new Phaser.Geom.Line(
                 this.x + 64 * Math.cos(this.scene.ship.rotation),
                 this.y + 64 * Math.sin(this.scene.ship.rotation),
-                this.x + 64 * Math.cos(this.scene.ship.rotation) * this.length,
-                this.y + 64 * Math.sin(this.scene.ship.rotation) * this.length
+                this.x +
+                    64 * Math.cos(this.scene.ship.rotation) * (this.length + 1),
+                this.y +
+                    64 * Math.sin(this.scene.ship.rotation) * (this.length + 1)
             );
             Phaser.Actions.PlaceOnLine(this.segments.getChildren(), this.line);
             this.segments.getChildren().forEach((segment) => {
@@ -85,24 +87,7 @@ class Laser extends Phaser.Physics.Matter.Sprite {
         }
     }
 
-    onCollision(event) {
-        // event.pairs.forEach((pair) => {
-        //     if (pair.bodyA === this.body || pair.bodyB === this.body) {
-        //         const otherBody =
-        //             pair.bodyA === this.body ? pair.bodyB : pair.bodyA;
-        //         if (
-        //             otherBody.collisionFilter.category ===
-        //                 this.scene.asteroidCollisionCategory ||
-        //             otherBody.collisionFilter.category ===
-        //                 this.scene.alienCollisionCategory
-        //         ) {
-        //             this.setActive(false);
-        //             this.setVisible(false);
-        //             this.world.remove(this.body, true);
-        //         }
-        //     }
-        // });
-    }
+    onCollision(event) {}
 
     preUpdate(time, delta) {
         super.preUpdate(time, delta);

@@ -143,6 +143,7 @@ class Scores extends Phaser.Scene {
             this.timeSinceMove = 0;
         }
         if (Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
+            this.sound.play("sfx-select2");
             this.scene.start("menuScene", {
                 backgroundY: this.background.tilePositionY,
             });
