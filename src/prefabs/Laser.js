@@ -71,12 +71,8 @@ class Laser extends Phaser.Physics.Matter.Sprite {
             this.line = new Phaser.Geom.Line(
                 this.x + 64 * Math.cos(this.scene.ship.rotation),
                 this.y + 64 * Math.sin(this.scene.ship.rotation),
-                this.x +
-                    64 * Math.cos(this.scene.ship.rotation) * this.length +
-                    1 * 0.99,
-                this.y +
-                    64 * Math.sin(this.scene.ship.rotation) * this.length +
-                    1 * 0.99
+                this.x + 64 * Math.cos(this.scene.ship.rotation) * this.length,
+                this.y + 64 * Math.sin(this.scene.ship.rotation) * this.length
             );
             Phaser.Actions.PlaceOnLine(this.segments.getChildren(), this.line);
             this.segments.getChildren().forEach((segment) => {

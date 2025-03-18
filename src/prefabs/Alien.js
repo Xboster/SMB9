@@ -19,7 +19,7 @@ class Alien extends Phaser.Physics.Matter.Sprite {
         this.scene.matter.world.on("collisionstart", this.onCollision, this);
     }
 
-    spawn(x, y, angle = 0, speed = 0, lifespan = 50000) {
+    spawn(x, y, angle = 0, speed = 0, lifespan = -1) {
         this.scene.matter.world.add(this.body);
 
         this.setPosition(x, y);
@@ -53,39 +53,49 @@ class Alien extends Phaser.Physics.Matter.Sprite {
         this.world.remove(this.body, true);
     }
 
-    moveTo(x = 0, y = 0) {
-        this.setSensor(true);
-        this.scene.tweens.add({
-            targets: this,
-            x: x,
-            y: y,
-            angle: 0,
-            duration: 500,
-            ease: "Linear",
-            onComplete: () => {
-                this.setVelocity(0);
-                this.setAngularVelocity(0);
-            },
-        });
+    moveTo(x = 0, y = 0, speed = 0) {
+        let distance = Phaser.Math.Distance.Between(this.x, this.y, x, y);
+        if (speed > 0) {
+            this.setSensor(true);
+            this.scene.tweens.add({
+                targets: this,
+                x: x,
+                y: y,
+                angle: 0,
+                duration: (distance / speed) * 1000,
+                ease: "Linear",
+                onComplete: () => {
+                    this.setVelocity(0);
+                    this.setAngularVelocity(0);
+                    this.setPosition(x, y);
+                },
+            });
+        }
     }
 
-    seek(x, y, speed = 0) {
-        // attack ship
-        // if (!idle) {
-        let dx = x - this.x;
-        let dy = y - this.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance > 0.1) {
-            dx /= distance;
-            dy /= distance;
-
-            this.setVelocity(dx * 2 * speed, dy * speed);
-        } else {
-            this.setVelocityX(0);
-            this.setVelocityY(0);
+    moveXY(x, y, speed) {
+        let distance = Phaser.Math.Distance.Between(
+            this.x,
+            this.y,
+            this.x + x,
+            this.y + y
+        );
+        if (speed > 0 && distance > 0 && this.idle <= 0) {
+            this.setSensor(true);
+            this.scene.tweens.add({
+                targets: this,
+                x: this.x + x,
+                y: this.y + y,
+                angle: 0,
+                duration: (distance / speed) * 1000,
+                ease: "Linear",
+                // onComplete: () => {
+                //     this.setVelocity(0);
+                //     this.setAngularVelocity(0);
+                //     this.setPosition(this.x + x, this.y + y);
+                // },
+            });
         }
-        // }
     }
 
     onCollision(event) {
@@ -167,9 +177,15 @@ class Alien extends Phaser.Physics.Matter.Sprite {
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
 
-        this.lifespan -= delta;
+        if (this.lifespan > 0) {
+            this.lifespan -= delta;
+        }
 
-        if (this.lifespan <= 0) {
+        if (this.scene.ship.active) {
+            this.idle -= delta;
+        }
+
+        if (this.lifespan <= 0 && this.lifespan != -1) {
             this.despawn();
         }
 

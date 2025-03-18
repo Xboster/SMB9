@@ -2,7 +2,9 @@ class Menu extends Phaser.Scene {
     constructor() {
         super("menuScene");
     }
-    init() {}
+    init() {
+        this.saveFile();
+    }
     preload() {}
     create(data) {
         this.input.mouse.disableContextMenu();
@@ -66,6 +68,7 @@ class Menu extends Phaser.Scene {
             )
             .setCharacterTint(0, -1, true, "0xFFFFFF");
 
+        cursors = this.input.keyboard.createCursorKeys();
         keys = this.input.keyboard.addKeys({
             W: Phaser.Input.Keyboard.KeyCodes.W,
             S: Phaser.Input.Keyboard.KeyCodes.S,
@@ -90,7 +93,6 @@ class Menu extends Phaser.Scene {
             if (this.menuSelection > 0) {
                 this.menuSelection -= 1;
                 // console.log(this.option[this.menuSelection]);
-                this.saveFile();
             }
         }
         if (Phaser.Input.Keyboard.JustDown(keys.S)) {
@@ -135,10 +137,21 @@ class Menu extends Phaser.Scene {
     }
     saveFile() {
         var file = {
-            names: [""],
-            scores: [""],
+            LEON: "9999999",
+            COCO: "225000",
+            WILT: "215000",
+            FRANKIE: "205000",
+            HERRIMAN: "200000",
+            "MADAME FOSTER": "150000",
+            "STINKY THE BAD AT VIDEO GAMES GUY": "123000",
+            EDUARDO: "121000",
+            BLOO: "91000",
+            MAC: "90000",
         };
-        localStorage.setItem("scores", JSON.stringify(file));
+        if (!localStorage.getItem("scores")) {
+            localStorage.setItem("scores", JSON.stringify(file));
+        }
+        console.log(localStorage.getItem("scores"));
     }
     loadFile() {
         var file = JSON.parse(localStorage.getItem("scores"));
@@ -147,8 +160,12 @@ class Menu extends Phaser.Scene {
     }
 
     updateFile(score) {
-        this.score += increment;
-        this.scoreTxt.setText(Game.scene.score);
-        localStorage.setItem("score", Game.scene.score);
+        var file = JSON.parse(localStorage.getItem("scores"));
+        console.log(file);
+        file.push({
+            names: name,
+            scores: score,
+        });
+        localStorage.setItem("scores", JSON.stringify(file));
     }
 }

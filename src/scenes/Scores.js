@@ -7,8 +7,6 @@ class Scores extends Phaser.Scene {
     create(data) {
         this.input.mouse.disableContextMenu();
 
-        this.scores = ["1", "2", "3"];
-
         this.background = this.add
             .tileSprite(0, 0, 1024, 1024, "background")
             .setOrigin(0);
@@ -16,6 +14,8 @@ class Scores extends Phaser.Scene {
         if (data.backgroundY) {
             this.background.tilePositionY = data.backgroundY;
         }
+
+        this.scrollPos = 0;
 
         // TITLE
         this.add
@@ -30,36 +30,110 @@ class Scores extends Phaser.Scene {
             .setOrigin(0.5)
             // .setDropShadow(1, 2, "0xFF0000", 123)
             .setCharacterTint(0, -1, true, "0xFFFFFF");
-        // SCORES
-        this.add
-            .bitmapText(
-                game.config.width / 8, // x
-                (game.config.height / 8) * 2, // y
-                "VCROSDMono", // key
-                "1", // text
-                42, // size
-                1 // align
-            )
-            .setOrigin(0.5)
-            // .setDropShadow(1, 2, "0xFF0000", 123)
-            .setCharacterTint(0, -1, true, "0xFFFFFF");
-        // RETURN TEXT
+        // BOTTOM TEXT
         this.add
             .bitmapText(
                 game.config.width / 2, // x
                 (game.config.height / 8) * 7, // y
                 "VCROSDMono", // key
-                "PRESS SPACE TO GO BACK", // text
+                "USE W/S OR UP/DOWN TO SCROLL UP AND DOWN\nPRESS SPACE TO GO BACK", // text
                 21, // size
                 1 // align
             )
             .setOrigin(0.5)
             // .setDropShadow(1, 2, "0xFF0000", 123)
             .setCharacterTint(0, -1, true, "0xFFFFFF");
-        this.input.keyboard.on("keydown-SPACE", () => {
-            this.scene.start("menuScene", {
-                backgroundY: this.background.tilePositionY,
-            });
+
+        this.scores = this.loadFile();
+
+        this.sortedScores = Array.from(this.scores.entries()).sort(
+            (a, b) => b[1] - a[1]
+        );
+        // this.sortedMap = new Map(this.sortedScores);
+
+        // this.saveFile(this.sortedMap);
+        // console.log(this.sortedScores);
+
+        const scoreArea = this.add
+            .rectangle(
+                0,
+                game.config.height / 5,
+                720,
+                (game.config.height / 10) * 6,
+                0xffffff
+            )
+            .setOrigin(0, 0)
+            .setVisible(false);
+
+        const mask = scoreArea.createBitmapMask();
+
+        // SCORES
+        this.scoresText = this.add.group();
+        this.sortedScores.forEach((nameScore, index) => {
+            // RANK
+            this.scoresText.add(
+                this.add
+                    .bitmapText(
+                        game.config.width / 8 + 3, // x
+                        (game.config.height / 8) * 2 + index * 48, // y
+                        "VCROSDMono", // key
+                        index + 1, // text
+                        21, // size
+                        2 // align
+                    )
+                    .setOrigin(1, 0)
+                    .setCharacterTint(0, -1, true, "0xFFFFFF")
+            );
+            // SUFFIX
+            this.scoresText.add(
+                this.add
+                    .bitmapText(
+                        game.config.width / 8 + 2, // x
+                        (game.config.height / 8) * 2 + index * 48 + 1, // y
+                        "VCROSDMono", // key
+                        this.getSuffix(index + 1), // text
+                        21 / 2, // size
+                        0 // align
+                    )
+                    .setCharacterTint(0, -1, true, "0xFFFFFF")
+            );
+            // NAME
+            this.scoresText.add(
+                this.add
+                    .bitmapText(
+                        game.config.width / 8 + 24, // x
+                        (game.config.height / 8) * 2 + index * 48, // y
+                        "VCROSDMono", // key
+                        nameScore[0], // text
+                        21, // size
+                        0 // align
+                    )
+                    .setCharacterTint(0, -1, true, "0xFFFFFF")
+            );
+            // SCORE
+            this.scoresText.add(
+                this.add
+                    .bitmapText(
+                        (game.config.width / 8) * 7, // x
+                        (game.config.height / 8) * 2 + index * 48, // y
+                        "VCROSDMono", // key
+                        nameScore[1], // text
+                        21, // size
+                        3 // align
+                    )
+                    .setOrigin(1, 0)
+                    .setCharacterTint(0, -1, true, "0xFFFFFF")
+            );
+        });
+        this.scoresText.getChildren().forEach((text) => {
+            text.setMask(mask);
+        });
+
+        cursors = this.input.keyboard.createCursorKeys();
+        keys = this.input.keyboard.addKeys({
+            W: Phaser.Input.Keyboard.KeyCodes.W,
+            S: Phaser.Input.Keyboard.KeyCodes.S,
+            SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
         });
     }
     update(time, delta) {
@@ -68,24 +142,52 @@ class Scores extends Phaser.Scene {
             this.background.tilePositionY -= 1;
             this.timeSinceMove = 0;
         }
+        if (Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
+            this.scene.start("menuScene", {
+                backgroundY: this.background.tilePositionY,
+            });
+        }
+
+        if ((keys.W.isDown || cursors.up.isDown) && this.scrollPos > 0) {
+            this.scoresText.getChildren().forEach((text) => {
+                text.y += 2;
+            });
+            this.scrollPos -= 2;
+        }
+        if (
+            (keys.S.isDown || cursors.down.isDown) &&
+            this.scrollPos < this.sortedScores.length * 48 - 6 * 48
+        ) {
+            this.scoresText.getChildren().forEach((text) => {
+                text.y -= 2;
+            });
+            this.scrollPos += 2;
+        }
     }
 
-    saveFile() {
-        var file = {
-            names: [""],
-            scores: [""],
-        };
-        localStorage.setItem("scores", JSON.stringify(file));
+    saveFile(file) {
+        localStorage.setItem(
+            "scores",
+            JSON.stringify(Object.fromEntries(file))
+        );
     }
     loadFile() {
-        var file = JSON.parse(localStorage.getItem("scores"));
-        this.scene.score = file.score;
-        this.scene.visits = file.visits;
+        return new Map(
+            Object.entries(JSON.parse(localStorage.getItem("scores")))
+        );
     }
 
-    updateFile(score) {
-        this.score += increment;
-        this.scoreTxt.setText(Game.scene.score);
-        localStorage.setItem("score", Game.scene.score);
+    getSuffix(rank) {
+        let suffix = "th";
+
+        if (rank % 10 === 1 && rank % 100 !== 11) {
+            suffix = "st";
+        } else if (rank % 10 === 2 && rank % 100 !== 12) {
+            suffix = "nd";
+        } else if (rank % 10 === 3 && rank % 100 !== 13) {
+            suffix = "rd";
+        }
+
+        return suffix.toUpperCase();
     }
 }

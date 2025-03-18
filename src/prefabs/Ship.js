@@ -11,13 +11,14 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.setRotation(-Math.PI / 2);
         this.fixed = true;
 
-        this.lives = 3;
+        this.lives = 5;
         this.isCharging = false;
         this.chargeStartTime = 0;
         this.chargeAmount = 0;
         this.maxChargeTime = 1000; // 1 second for full charge
 
         this.laser;
+        this.verticalMovementEnabled = true;
 
         this.respawnDelay = 0;
 
@@ -137,11 +138,17 @@ class Ship extends Phaser.Physics.Matter.Sprite {
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
         // ship movement
-        if (keys.W.isDown || cursors.up.isDown) {
+        if (
+            keys.W.isDown ||
+            (cursors.up.isDown && this.verticalMovementEnabled)
+        ) {
             this.thrust(0.5);
             // console.log(this.angle);
         }
-        if (keys.S.isDown || cursors.down.isDown) {
+        if (
+            keys.S.isDown ||
+            (cursors.down.isDown && this.verticalMovementEnabled)
+        ) {
             this.thrust(-0.5);
             // console.log(this.angle);
         }

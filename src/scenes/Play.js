@@ -14,9 +14,8 @@ class Play extends Phaser.Scene {
         this.background.tilePositionY = data.backgroundY;
         this.timeSinceMove = 0;
 
-        this.alienExplosion =
-            // input ------------------------------------------------------------------
-            cursors = this.input.keyboard.createCursorKeys();
+        // input ------------------------------------------------------------------
+        cursors = this.input.keyboard.createCursorKeys();
         keys = this.input.keyboard.addKeys({
             W: Phaser.Input.Keyboard.KeyCodes.W,
             A: Phaser.Input.Keyboard.KeyCodes.A,
@@ -172,25 +171,22 @@ class Play extends Phaser.Scene {
             // }
 
             if (pointer.rightButtonDown()) {
-                // console.log(this.gamePhase);
-                // console.log(this.ship.lives);
-                // console.log(this.ship.active);
-                this.displayScore();
-                // this.pressToRestart();
-                this.enterScore();
+                // this.inSwarm = this.alienSwarm.filter(
+                //     (alien) => alien.data.values["swarm"]
+                // );
+                // this.inSwarm.forEach((alien) => {
+                //     alien.moveXY(-10, 0, 2000);
+                // });
+
+                // console.log(
+                //     "SWARM X:" + this.centerX + " SHIP X:" + this.ship.x
+                // );
+                console.log(
+                    "SWARM Y:" + this.centerY + " SHIP Y:" + this.ship.y
+                );
             }
 
-            // move to
             if (pointer.leftButtonDown()) {
-                console.log("x: " + x + "y: " + y);
-                const smallAlien = this.alienSwarm.filter(
-                    (alien) => alien.active && alien.data.values["swarm"]
-                );
-                if (smallAlien) {
-                    smallAlien.forEach((alien) => {
-                        alien.seek(x, y, 5);
-                    });
-                }
             }
         });
 
@@ -210,7 +206,7 @@ class Play extends Phaser.Scene {
 
         // UI Lives
         this.lives = [];
-        for (let i = 1; i < 3; i++) {
+        for (let i = 1; i <= this.ship.lives; i++) {
             this.lives.push(
                 this.add
                     .image(game.config.width - 20 * i, 20, "ship")
@@ -222,13 +218,14 @@ class Play extends Phaser.Scene {
 
         this.lastSpawned = 0;
         this.spawnInterval = 500;
-        this.asteroidsSpawned = 500;
+        this.asteroidsSpawned = 499;
         this.swarmSpawned = false;
         this.swarmActive = false;
         this.gamePhase = 1;
         this.inSwarm = [];
         this.swarmUnite = false;
         this.points = [];
+
         // create points
         for (let i = 0; i < 12; i++) {
             for (let j = 0; j < 12; j++) {
@@ -242,9 +239,9 @@ class Play extends Phaser.Scene {
             width: 12,
             height: 12,
             cellWidth: 15,
-            cellHeight: 12,
-            x: game.config.width / 2 - (12 * 16) / 2 - 8,
-            y: game.config.height / 2 - (12 * 12) / 2 - 100,
+            cellHeight: 13,
+            x: game.config.width / 2 - (12 * 16) / 2 - 16 / 2,
+            y: game.config.height / 2 - (12 * 12) / 2 - 150,
         });
         this.removePoints = [
             [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
@@ -331,6 +328,7 @@ class Play extends Phaser.Scene {
         // PHASE 2: alien circle
         if (
             this.gamePhase == 2 &&
+            this.ship.active &&
             !this.asteroids.find((asteroid) => asteroid.active) &&
             !this.aliens.find((alien) => alien.active)
         ) {
@@ -364,86 +362,53 @@ class Play extends Phaser.Scene {
 
         // PHASE 3: SPAWN BIG EVIL BLASTER THING AT THE END THAT YOURE SUPPOSED TO BLAST
         if (this.gamePhase == 3) {
-            console.log("PHASE 3");
-            if (!this.swarmUnite) {
-                this.time.delayedCall(1000, () => {
-                    this.inSwarm = this.alienSwarm.filter(
-                        (alien) => alien.data.values["swarm"]
-                    );
-                    this.waypoints = this.points.filter(
-                        (point) => point.active
-                    );
-                    this.inSwarm.forEach((alien) => {
-                        let waypoint;
-                        do {
-                            waypoint =
-                                this.waypoints[
-                                    Math.floor(
-                                        Math.random() * this.waypoints.length
-                                    )
-                                ];
-                        } while (!waypoint.active);
-
-                        if (waypoint) {
-                            waypoint.setActive(false);
-                            alien.moveTo(waypoint.x, waypoint.y);
-                            alien.setSensor(false);
-                        }
-                    });
-
-                    this.gamePhase = 4;
-                    this.waypoints.forEach((point) => {
-                        point.setActive(true);
-                    });
-                });
-                this.swarmUnite = true;
-            }
+            this.uniteSwarm();
+            this.gamePhase = 4;
         }
-        // PHASE 3: MEGA BOSS
+        // PHASE 4: MEGA BOSS
         if (this.gamePhase == 4) {
             this.inSwarm = this.alienSwarm.filter(
                 (alien) => alien.data.values["swarm"]
             );
 
-            if (this.ship.active) {
-                this.swarmUnite = false;
-                this.inSwarm.forEach((alien) => {
-                    alien.seek(this.ship.x, this.ship.y, 2);
-                });
-            }
-            if (!this.swarmUnite && !this.ship.active) {
-                this.inSwarm = this.alienSwarm.filter(
-                    (alien) => alien.data.values["swarm"]
-                );
-                this.waypoints = this.points.filter((point) => point.active);
-                this.inSwarm.forEach((alien) => {
-                    let waypoint;
-                    do {
-                        waypoint =
-                            this.waypoints[
-                                Math.floor(
-                                    Math.random() * this.waypoints.length
-                                )
-                            ];
-                    } while (!waypoint.active);
+            let totalX = 0;
+            let totalY = 0;
 
-                    if (waypoint) {
-                        waypoint.setActive(false);
-                        alien.moveTo(waypoint.x, waypoint.y);
-                        alien.setSensor(false);
+            this.inSwarm.forEach((alien) => {
+                totalX += alien.x;
+                totalY += alien.y;
+            });
+
+            this.centerX = totalX / this.inSwarm.length;
+            this.centerY = totalY / this.inSwarm.length;
+
+            if (this.ship.active) {
+                this.inSwarm.forEach((alien) => {
+                    if (this.centerX < this.ship.x - 10) {
+                        // move right
+                        alien.moveXY(10, 4, 200);
+                    } else if (this.centerX > this.ship.x + 10) {
+                        // move left
+                        alien.moveXY(-10, 4, 200);
+                    } else {
+                        alien.moveXY(0, 4, 100);
+                    }
+
+                    if (alien.y > 470) {
+                        alien.moveTo(this.ship.x, this.ship.y, 100);
                     }
                 });
-                this.waypoints.forEach((point) => {
-                    point.setActive(true);
-                });
-                this.swarmUnite = true;
             }
+
+            if (!this.ship.active) {
+                this.uniteSwarm();
+            }
+
             if (this.inSwarm.length == 0) {
-                console.log(this.inSwarm);
                 this.gamePhase = 5;
             }
         }
-        console.log(this.ship.lives);
+
         // respawn ship when asteroids/aliens leave
         if (
             !this.ship.active &&
@@ -452,7 +417,7 @@ class Play extends Phaser.Scene {
             !this.ship.respawnDelay <= 0
         ) {
             // respawn ship
-            if (this.ship.lives >= 0) {
+            if (this.ship.lives > 0) {
                 console.log("HAS " + this.ship.lives + " LIVES LEFT");
                 this.lives[this.ship.lives - 1].setVisible(false);
                 this.ship.spawn(this.shipSpawnPoint.x, this.shipSpawnPoint.y);
@@ -480,9 +445,11 @@ class Play extends Phaser.Scene {
         }
         // ENTER SCORE
         if (this.gamePhase == 7) {
-            // this.pressToRestart();
             this.enterScore();
             this.gamePhase = 8;
+        }
+        if (this.gamePhase == 9) {
+            this.pressToRestart();
         }
     }
 
@@ -558,12 +525,12 @@ class Play extends Phaser.Scene {
         });
     }
     enterScore() {
-        this.add
+        var textPrompt = this.add
             .bitmapText(
-                game.config.width / 4,
+                game.config.width / 5,
                 (game.config.height / 3) * 2,
                 "VCROSDMono",
-                "ENTER NAME:\nPRESS ENTER TO SUBMIT SCORE",
+                "ENTER NAME:\nPRESS [ENTER] TO SUBMIT SCORE",
                 21,
                 0
             )
@@ -572,7 +539,7 @@ class Play extends Phaser.Scene {
 
         var textEntry = this.add
             .bitmapText(
-                game.config.width / 3 + 83,
+                game.config.width / 3 + 47,
                 (game.config.height / 3) * 2 - 21,
                 "VCROSDMono",
                 "",
@@ -581,7 +548,7 @@ class Play extends Phaser.Scene {
             )
             .setCharacterTint(0, -1, true, "0xFFFFFF");
 
-        this.input.keyboard.on("keydown", function (event) {
+        this.input.keyboard.on("keydown", (event) => {
             if (event.keyCode === 8 && textEntry.text.length > 0) {
                 textEntry.text = textEntry.text.substr(
                     0,
@@ -591,23 +558,23 @@ class Play extends Phaser.Scene {
                 event.keyCode === 32 ||
                 (event.keyCode >= 48 && event.keyCode < 90)
             ) {
-                textEntry.text += event.key;
-
+                if (this.gamePhase == 8 && textEntry.text.length <= 32) {
+                    textEntry.text += event.key.toUpperCase();
+                }
                 textEntry.setCharacterTint(0, -1, true, "0xFFFFFF");
+            }
+            // submit score on [ENTER]
+            if (event.keyCode === Phaser.Input.Keyboard.KeyCodes.ENTER) {
+                textPrompt
+                    .setText("ENTER NAME:\nPRESS [SPACE] TO RETURN TO MENU")
+                    .setCharacterTint(0, -1, true, "0xFFFFFF");
+                this.updateFile(textEntry.text, this.score);
+
+                this.gamePhase = 9;
             }
         });
     }
     pressToRestart() {
-        const text = this.add
-            .bitmapText(
-                game.config.width / 2, // x
-                (game.config.height / 3) * 2, // y
-                "VCROSDMono",
-                "PRESS [SPACE] TO RETURN TO MENU",
-                21
-            )
-            .setOrigin(0.5, 0.5)
-            .setCharacterTint(0, -1, true, "0xFFFFFF");
         if (keys.SPACE.isDown) {
             this.scene.start("menuScene", {
                 backgroundY: this.background.tilePositionY,
@@ -637,7 +604,6 @@ class Play extends Phaser.Scene {
             }
         }
 
-        // console.log(motherGroup);
         Phaser.Actions.PlaceOnCircle(
             this.motherGroup.getChildren(),
             this.circle
@@ -660,22 +626,46 @@ class Play extends Phaser.Scene {
         });
     }
 
-    saveFile() {
-        var file = {
-            names: [""],
-            scores: [""],
-        };
-        localStorage.setItem("scores", JSON.stringify(file));
-    }
-    loadFile() {
-        var file = JSON.parse(localStorage.getItem("scores"));
-        this.scene.score = file.score;
-        this.scene.visits = file.visits;
+    uniteSwarm() {
+        if (!this.swarmUnite) {
+            this.swarmUnite = true;
+            this.inSwarm = this.alienSwarm.filter(
+                (alien) => alien.data.values["swarm"]
+            );
+            this.waypoints = this.points.filter((point) => point.active);
+            this.inSwarm.forEach((alien) => {
+                let waypoint;
+                do {
+                    waypoint =
+                        this.waypoints[
+                            Math.floor(Math.random() * this.waypoints.length)
+                        ];
+                } while (!waypoint.active);
+
+                if (waypoint) {
+                    waypoint.setActive(false);
+                    alien.moveTo(waypoint.x, waypoint.y, 200);
+                }
+                alien.idle = 2000;
+            });
+
+            this.waypoints.forEach((point) => {
+                point.setActive(true);
+            });
+            this.time.delayedCall(5000, () => {
+                this.swarmUnite = false;
+            });
+        }
     }
 
-    updateFile(score) {
-        this.score += increment;
-        this.scoreTxt.setText(Game.scene.score);
-        localStorage.setItem("score", Game.scene.score);
+    updateFile(name, score) {
+        var file = new Map(
+            Object.entries(JSON.parse(localStorage.getItem("scores")))
+        );
+        file.set(name, score);
+        localStorage.setItem(
+            "scores",
+            JSON.stringify(Object.fromEntries(file))
+        );
     }
 }
