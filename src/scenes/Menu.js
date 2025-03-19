@@ -212,19 +212,20 @@ class Menu extends Phaser.Scene {
     }
     saveFile() {
         var file = {
-            LEON: "136850",
-            COCO: "225000",
-            WILT: "215000",
-            FRANKIE: "205000",
-            HERRIMAN: "200000",
-            "MADAME FOSTER": "150000",
-            "STINKY THE BAD AT VIDEO GAMES GUY": "123000",
-            EDUARDO: "121000",
-            BLOO: "91000",
-            MAC: "90000",
+            LEON: 149300,
+            COCO: 225000,
+            WILT: 215000,
+            FRANKIE: 205000,
+            HERRIMAN: 200000,
+            "MADAME FOSTER": 150000,
+            "STINKY THE BAD AT VIDEO GAMES GUY": 123000,
+            EDUARDO: 121000,
+            BLOO: 91000,
+            MAC: 90000,
         };
         if (!localStorage.getItem("scores")) {
             localStorage.setItem("scores", JSON.stringify(file));
+            localStorage.setItem("completedTutorial", false);
         }
     }
     loadFile() {

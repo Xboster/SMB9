@@ -303,8 +303,12 @@ class Play extends Phaser.Scene {
                     )
                     .setCharacterTint(0, -1, true, "0xFFFFFF");
             }
-
-            if (this.tap && this.hold && this.doneMovement) {
+            // do not play tutorial if completed before
+            if (
+                (this.tap && this.hold && this.doneMovement) ||
+                JSON.parse(localStorage.getItem("completedTutorial"))
+            ) {
+                localStorage.setItem("completedTutorial", true);
                 this.tutorialText.destroy();
                 this.gamePhase = 1;
             }
@@ -691,8 +695,8 @@ class Play extends Phaser.Scene {
         var file = new Map(
             Object.entries(JSON.parse(localStorage.getItem("scores")))
         );
-        // only update score if higher
-        if (file.get(name) < score) {
+        // only update score if higher or new name
+        if (file.get(name) < score || !file.get(name)) {
             file.set(name, score);
         }
 
