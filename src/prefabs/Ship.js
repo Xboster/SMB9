@@ -2,6 +2,72 @@ class Ship extends Phaser.Physics.Matter.Sprite {
     constructor(scene, x, y, texture, options) {
         super(scene.matter.world, x, y, texture, null, options);
 
+        this.joyStick = null;
+        this.hasJoyStick = null;
+        this.pointerStack = []; // holds taps that havent moved
+        this.justDown = false;
+        this.justUp = false;
+
+        // joystick
+        this.scene.input
+            .on("pointerdown", (pointer, localX, localY, event) => {
+                this.pointerStack.push(pointer);
+                // console.log(this.pointerStack);
+                this.justDown = true;
+            })
+            .on("pointermove", (pointer, localX, localY, event) => {
+                if (pointer.isDown && !this.joyStick) {
+                    this.joyStick = this.scene.plugins
+                        .get("rexvirtualjoystickplugin")
+                        .add(this.scene, {
+                            x: pointer.x,
+                            y: pointer.y,
+                            radius: 100,
+                            base: this.scene.add.circle(
+                                0,
+                                0,
+                                100,
+                                0x888888,
+                                128
+                            ),
+                            thumb: this.scene.add.circle(
+                                0,
+                                0,
+                                50,
+                                0xcccccc,
+                                128
+                            ),
+                            fixed: false,
+                            // dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
+                            forceMin: 24,
+                            // enable: true
+                        })
+                        .setVisible(true);
+                    cursors = this.joyStick.createCursorKeys();
+                    this.hasJoyStick = pointer.id;
+                    this.pointerStack.splice(
+                        this.pointerStack.indexOf(pointer),
+                        1
+                    );
+                    // console.log(pointer.id + " has stick");
+                    // console.log(this.pointerStack);
+                }
+            })
+            .on("pointerup", (pointer, localX, localY, event) => {
+                // console.log(pointer.id + " released");
+                if (this.hasJoyStick == pointer.id && !pointer.isDown) {
+                    if (this.joyStick) {
+                        cursors = this.scene.input.keyboard.createCursorKeys();
+                        this.joyStick.destroy();
+                        this.joyStick = null;
+                        this.hasJoyStick = null;
+                    }
+                }
+                // console.log(this.pointerStack);
+                this.pointerStack.splice(this.pointerStack.indexOf(pointer), 1);
+                this.justUp = true;
+            });
+
         this.setActive(false);
         this.setVisible(false);
 
@@ -15,7 +81,7 @@ class Ship extends Phaser.Physics.Matter.Sprite {
         this.isCharging = false;
         this.chargeStartTime = 0;
         this.chargeAmount = 0;
-        this.maxChargeTime = 1000; // 1 second for full charge
+        this.maxChargeTime = 800;
 
         this.laser;
         this.verticalMovementEnabled = true;
@@ -96,6 +162,14 @@ class Ship extends Phaser.Physics.Matter.Sprite {
                     this.setVisible(false);
                     this.world.remove(this.body, true);
                     this.respawnDelay = 3000;
+                    this.scene.add
+                        .particles(this.x, this.y, "red", {
+                            lifespan: 300,
+                            speed: { min: 50, max: 150 },
+                            scale: { start: 1, end: 0 },
+                            emitting: false,
+                        })
+                        .explode(32);
                 }
             }
         });
@@ -139,20 +213,21 @@ class Ship extends Phaser.Physics.Matter.Sprite {
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
         // ship movement
+        // FORWARD
         if (
             (keys.W.isDown || cursors.up.isDown) &&
             this.verticalMovementEnabled
         ) {
             this.thrust(0.5);
-            // console.log(this.angle);
         }
+        // BACKWARDS
         if (
             (keys.S.isDown || cursors.down.isDown) &&
             this.verticalMovementEnabled
         ) {
             this.thrust(-0.5);
-            // console.log(this.angle);
         }
+        // LEFT
         if (keys.A.isDown || cursors.left.isDown) {
             if (this.fixed) {
                 this.thrustLeft(0.5);
@@ -160,6 +235,7 @@ class Ship extends Phaser.Physics.Matter.Sprite {
                 this.setAngularVelocity(-0.2);
             }
         }
+        // RIGHT
         if (keys.D.isDown || cursors.right.isDown) {
             if (this.fixed) {
                 this.thrustRight(0.5);
@@ -168,13 +244,15 @@ class Ship extends Phaser.Physics.Matter.Sprite {
             }
         }
 
-        if (keys.Q.isDown) {
-            this.setAngularVelocity(-0.2);
-        } else if (keys.E.isDown) {
-            this.setAngularVelocity(0.2);
-        }
+        // debug
+        // if (keys.Q.isDown) {
+        //     this.setAngularVelocity(-0.2);
+        // } else if (keys.E.isDown) {
+        //     this.setAngularVelocity(0.2);
+        // }
 
-        if (Phaser.Input.Keyboard.JustDown(keys.SPACE)) {
+        if (Phaser.Input.Keyboard.JustDown(keys.SPACE) || this.justDown) {
+            this.justDown = false;
             this.isCharging = true;
             this.chargeStartTime = this.scene.time.now;
             this.chargeAmount = 0;
@@ -186,7 +264,10 @@ class Ship extends Phaser.Physics.Matter.Sprite {
             });
             this.scene.tap = true;
         }
-        if (this.isCharging && keys.SPACE.isDown) {
+        if (
+            this.isCharging &&
+            (keys.SPACE.isDown || this.pointerStack.length > 0)
+        ) {
             this.chargeAmount = Math.min(
                 (this.scene.time.now - this.chargeStartTime) /
                     this.maxChargeTime,
@@ -196,7 +277,11 @@ class Ship extends Phaser.Physics.Matter.Sprite {
                 this.laser.charge();
             }
         }
-        if (this.isCharging && Phaser.Input.Keyboard.JustUp(keys.SPACE)) {
+        if (
+            this.isCharging &&
+            (Phaser.Input.Keyboard.JustUp(keys.SPACE) || this.justUp)
+        ) {
+            this.justUp = false;
             this.fireProjectile();
         }
     }

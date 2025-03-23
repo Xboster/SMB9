@@ -50,8 +50,11 @@ const config = {
             // },
         },
     },
+    input: {
+        activePointers: 3,
+    },
     backgroundColor: "#4444aa",
-    scene: [Load, Menu, Play, Scores, Credits],
+    scene: [Load, Menu, Play, Scores, Credits, InputPanel],
     fps: {
         min: 30,
         target: 60,

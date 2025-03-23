@@ -72,11 +72,11 @@ class Alien extends Phaser.Physics.Matter.Sprite {
                 angle: 0,
                 duration: (distance / speed) * 1000,
                 ease: "Linear",
-                onComplete: () => {
-                    this.setVelocity(0);
-                    this.setAngularVelocity(0);
-                    this.setPosition(x, y);
-                },
+                // onComplete: () => {
+                //     // this.setVelocity(0);
+                //     // this.setAngularVelocity(0);
+                //     // this.setPosition(x, y);
+                // },
             });
         }
     }

@@ -33,7 +33,7 @@ class Credits extends Phaser.Scene {
         this.add
             .bitmapText(
                 game.config.width / 2, // x
-                game.config.height / 2, // y
+                (game.config.height / 10) * 4, // y
                 "VCROSDMono", // key
                 "DIRECTED BY\nLEON NG", // text
                 21, // size
@@ -47,7 +47,7 @@ class Credits extends Phaser.Scene {
         this.add
             .bitmapText(
                 game.config.width / 2, // x
-                (game.config.height / 8) * 5, // y
+                (game.config.height / 10) * 5, // y
                 "VCROSDMono", // key
                 "PROGRAMMING AND GRAPHICS\nLEON NG", // text
                 21, // size
@@ -57,26 +57,63 @@ class Credits extends Phaser.Scene {
             // .setDropShadow(1, 2, "0xFF0000", 123)
             .setCharacterTint(0, -1, true, "0x00FF00")
             .setCharacterTint(24, -1, true, "0xFFFFFF");
-        // RETURN TEXT
+
         this.add
             .bitmapText(
                 game.config.width / 2, // x
-                (game.config.height / 8) * 7, // y
+                (game.config.height / 10) * 6, // y
                 "VCROSDMono", // key
-                "PRESS SPACE TO GO BACK", // text
+                "PHASER PLUGIN\nREXRAINBOW", // text
                 21, // size
                 1 // align
             )
             .setOrigin(0.5)
             // .setDropShadow(1, 2, "0xFF0000", 123)
-            .setCharacterTint(0, -1, true, "0xFFFFFF");
+            .setCharacterTint(0, -1, true, "0x00FF00")
+            .setCharacterTint(13, -1, true, "0xFFFFFF");
 
-        this.input.keyboard.on("keydown-SPACE", () => {
-            this.sound.play("sfx-select2");
-            this.scene.start("menuScene", {
-                backgroundY: this.background.tilePositionY,
+        // RETURN TEXT
+        if (!this.sys.game.device.input.touch) {
+            this.add
+                .bitmapText(
+                    game.config.width / 2, // x
+                    (game.config.height / 8) * 7, // y
+                    "VCROSDMono", // key
+                    "PRESS SPACE TO GO BACK", // text
+                    21, // size
+                    1 // align
+                )
+                .setOrigin(0.5)
+                // .setDropShadow(1, 2, "0xFF0000", 123)
+                .setCharacterTint(0, -1, true, "0xFFFFFF");
+
+            this.input.keyboard.on("keydown-SPACE", () => {
+                this.sound.play("sfx-select2");
+                this.scene.start("menuScene", {
+                    backgroundY: this.background.tilePositionY,
+                });
             });
-        });
+        }
+        // MOBILE RETURN
+        if (this.sys.game.device.input.touch) {
+            this.returnTxt = this.add
+                .bitmapText(
+                    game.config.width / 2, // x
+                    (game.config.height / 10) * 9, // y
+                    "VCROSDMono", // key
+                    "PRESS HERE TO GO BACK", // text
+                    21 // size
+                )
+                .setCharacterTint(0, -1, true, "0xFFFFFF")
+                .setInteractive({ useHandCursor: true })
+                .setOrigin(0.5)
+                .on("pointerup", () => {
+                    this.sound.play("sfx-select2");
+                    this.scene.start("menuScene", {
+                        backgroundY: this.background.tilePositionY,
+                    });
+                });
+        }
     }
     update(time, delta) {
         this.timeSinceMove += delta;

@@ -183,6 +183,17 @@ class Play extends Phaser.Scene {
         this.doneMovement = false;
         this.tap = false;
         this.hold = false;
+        // // god mode
+        // this.godmode = false;
+
+        // this.input.keyboard.on("keydown-G", () => {
+        //     this.godmode = !this.godmode;
+        //     if (this.godmode) {
+        //         this.physics.world.createDebugGraphic();
+        //     } else {
+        //         this.physics.world.clearDebugGraphic();
+        //     }
+        // });
 
         // create points
         for (let i = 0; i < 12; i++) {
@@ -245,21 +256,25 @@ class Play extends Phaser.Scene {
         }
 
         // TEST;
-        // if (keys.SPACE.isDown) {
-        //     const blast = this.blasts.find((blast) => !blast.active);
-        //     if (this.ship.active && blast) {
-        //         blast.fire(this.ship.x, this.ship.y, this.ship.rotation, 32);
-        //         this.sound.play("sfx-shoot");
-        //     }
+        // if (keys.SPACE.isDown && this.godmode) {
+        //     this.ship.fireProjectile();
+        //     this.ship.isCharging = false;
         // }
 
         // PHASE 0: Tutorial
         if (this.gamePhase == 0) {
             if (!this.doneMovement) {
-                this.tutorialText
-                    .setText("USE WASD OR\nARROW KEYS TO MOVE")
-                    .setOrigin(0.5)
-                    .setCharacterTint(0, -1, true, "0xFFFFFF");
+                if (this.sys.game.device.input.touch) {
+                    this.tutorialText
+                        .setText("TAP AND DRAG TO MOVE")
+                        .setOrigin(0.5)
+                        .setCharacterTint(0, -1, true, "0xFFFFFF");
+                } else {
+                    this.tutorialText
+                        .setText("USE WASD/ARROW KEYS\nOR DRAG TO MOVE")
+                        .setOrigin(0.5)
+                        .setCharacterTint(0, -1, true, "0xFFFFFF");
+                }
             }
 
             if (
@@ -297,11 +312,20 @@ class Play extends Phaser.Scene {
                 this.doneMovement = true;
                 this.tap = false;
                 this.hold = false;
-                this.tutorialText
-                    .setText(
-                        "TAP SPACE TO SHOOT\nHOLD SPACE TO CHARGE LASER\nLET GO TO FIRE LASER"
-                    )
-                    .setCharacterTint(0, -1, true, "0xFFFFFF");
+
+                if (this.sys.game.device.input.touch) {
+                    this.tutorialText
+                        .setText(
+                            "TAP TO SHOOT\nHOLD TO CHARGE LASER\nLET GO TO FIRE LASER"
+                        )
+                        .setCharacterTint(0, -1, true, "0xFFFFFF");
+                } else {
+                    this.tutorialText
+                        .setText(
+                            "CLICK OR SPACE TO SHOOT\nHOLD TO CHARGE LASER\nLET GO TO FIRE LASER"
+                        )
+                        .setCharacterTint(0, -1, true, "0xFFFFFF");
+                }
             }
             // do not play tutorial if completed before
             if (
@@ -318,8 +342,8 @@ class Play extends Phaser.Scene {
         if (
             this.gamePhase == 1 &&
             this.ship.active &&
-            this.lastSpawned > this.spawnInterval + 150 &&
-            this.asteroidsSpawned < 500
+            this.lastSpawned > this.spawnInterval + 200 &&
+            this.asteroidsSpawned < 250
         ) {
             const asteroid = this.asteroids.find(
                 (asteroid) => !asteroid.active
@@ -338,7 +362,7 @@ class Play extends Phaser.Scene {
                 // console.log(this.asteroidsSpawned);
             }
             // next phase
-            if (this.asteroidsSpawned >= 500) {
+            if (this.asteroidsSpawned >= 250) {
                 this.gamePhase = 2;
             }
         }
@@ -481,7 +505,7 @@ class Play extends Phaser.Scene {
         this.endTxt = this.add
             .bitmapText(
                 game.config.width / 2, // x
-                game.config.height / 2, // y
+                game.config.height / 3, // y
                 "VCROSDMono", // key
                 "", // text
                 105, // size
@@ -521,7 +545,7 @@ class Play extends Phaser.Scene {
         const scoreText = this.add
             .bitmapText(
                 game.config.width / 2, // x
-                game.config.height / 3, // y
+                game.config.height / 4, // y
                 "VCROSDMono",
                 "SCORE",
                 63
@@ -531,7 +555,7 @@ class Play extends Phaser.Scene {
         const numberText = this.add
             .bitmapText(
                 game.config.width / 2, // x
-                game.config.height / 2, // y
+                (game.config.height / 5) * 2, // y
                 "VCROSDMono",
                 0,
                 105
@@ -561,7 +585,7 @@ class Play extends Phaser.Scene {
         var textPrompt = this.add
             .bitmapText(
                 game.config.width / 5,
-                (game.config.height / 3) * 2,
+                (game.config.height / 5) * 3,
                 "VCROSDMono",
                 "ENTER NAME:\nPRESS [ENTER] TO SUBMIT SCORE",
                 21,
@@ -573,13 +597,64 @@ class Play extends Phaser.Scene {
         var textEntry = this.add
             .bitmapText(
                 game.config.width / 3 + 47,
-                (game.config.height / 3) * 2 - 21,
+                (game.config.height / 5) * 3 - 21,
                 "VCROSDMono",
                 "",
                 21,
                 0
             )
             .setCharacterTint(0, -1, true, "0xFFFFFF");
+        var textEntryCursor = this.add
+            .bitmapText(
+                game.config.width / 3 + 42,
+                (game.config.height / 5) * 3 - 21,
+                "VCROSDMono",
+                "|",
+                21,
+                0
+            )
+            .setCharacterTint(0, -1, true, "0xFFFFFF");
+        this.cursorblink = this.time.addEvent({
+            delay: 500,
+            callback: () => {
+                if (textEntryCursor.alpha == 0) {
+                    textEntryCursor.setAlpha(255);
+                } else {
+                    textEntryCursor.setAlpha(0);
+                }
+            },
+            loop: true,
+        });
+
+        this.scene.launch("InputPanel");
+        this.scene.get("InputPanel").events.on("keyPressed", (key) => {
+            if (key === "delete" && textEntry.text.length > 0) {
+                textEntry.text = textEntry.text.substr(
+                    0,
+                    textEntry.text.length - 1
+                );
+            } else if (/^[A-Z\s]+$/.test(key)) {
+                if (this.gamePhase == 8 && textEntry.text.length <= 32) {
+                    textEntry.text += key;
+                }
+            }
+            if (key === "enter") {
+                textPrompt
+                    .setText("ENTER NAME:\nTAP ANYWHERE TO RETURN TO MENU")
+                    .setCharacterTint(0, -1, true, "0xFFFFFF");
+                this.updateFile(textEntry.text, this.score);
+
+                this.scene.stop("InputPanel");
+                this.scene.get("InputPanel").events.off("keyPressed");
+                textEntryCursor.setVisible(false);
+                this.cursorblink.loop = false;
+                this.gamePhase = 9;
+            }
+
+            textEntry.setCharacterTint(0, -1, true, "0xFFFFFF");
+            textEntryCursor.text = " ".repeat(textEntry.text.length) + "|";
+            textEntryCursor.setCharacterTint(0, -1, true, "0xFFFFFF");
+        });
 
         this.input.keyboard.on("keydown", (event) => {
             if (event.keyCode === 8 && textEntry.text.length > 0) {
@@ -602,13 +677,18 @@ class Play extends Phaser.Scene {
                     .setText("ENTER NAME:\nPRESS [SPACE] TO RETURN TO MENU")
                     .setCharacterTint(0, -1, true, "0xFFFFFF");
                 this.updateFile(textEntry.text, this.score);
-
+                this.scene.stop("InputPanel");
+                this.scene.get("InputPanel").events.off("keyPressed");
+                textEntryCursor.setVisible(false);
+                this.cursorblink.loop = false;
                 this.gamePhase = 9;
             }
+            textEntryCursor.text = " ".repeat(textEntry.text.length) + "|";
+            textEntryCursor.setCharacterTint(0, -1, true, "0xFFFFFF");
         });
     }
     pressToRestart() {
-        if (keys.SPACE.isDown) {
+        if (keys.SPACE.isDown || this.input.activePointer.isDown) {
             this.scene.start("menuScene", {
                 backgroundY: this.background.tilePositionY,
             });

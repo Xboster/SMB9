@@ -57,7 +57,15 @@ class Menu extends Phaser.Scene {
                 this.option[0], // text
                 42 // size
             )
-            .setCharacterTint(0, -1, true, "0xFFFFFF");
+            .setCharacterTint(0, -1, true, "0xFFFFFF")
+            .setInteractive({ useHandCursor: true })
+            .on("pointerover", () => {
+                this.sfxSelect.play();
+                this.menuSelection = 0;
+            })
+            .on("pointerup", () => {
+                this.buttonPressed = true;
+            });
 
         // SCORES
         this.scoresTxt = this.add
@@ -68,7 +76,15 @@ class Menu extends Phaser.Scene {
                 this.option[1], // text
                 42 // size
             )
-            .setCharacterTint(0, -1, true, "0xFFFFFF");
+            .setCharacterTint(0, -1, true, "0xFFFFFF")
+            .setInteractive({ useHandCursor: true })
+            .on("pointerover", () => {
+                this.sfxSelect.play();
+                this.menuSelection = 1;
+            })
+            .on("pointerup", () => {
+                this.buttonPressed = true;
+            });
 
         // CREDITS
         this.creditsTxt = this.add
@@ -79,11 +95,17 @@ class Menu extends Phaser.Scene {
                 this.option[2], // text
                 42 // size
             )
-            .setCharacterTint(0, -1, true, "0xFFFFFF");
-
-        this.playTxt.setInteractive({ useHandCursor: true });
-        this.scoresTxt.setInteractive({ useHandCursor: true });
-        this.creditsTxt.setInteractive({ useHandCursor: true });
+            .setCharacterTint(0, -1, true, "0xFFFFFF")
+            .setInteractive({ useHandCursor: true })
+            .on("pointerover", () => {
+                if (this.menuSelection != 2) {
+                    this.sfxSelect.play();
+                }
+                this.menuSelection = 2;
+            })
+            .on("pointerup", () => {
+                this.buttonPressed = true;
+            });
 
         cursors = this.input.keyboard.createCursorKeys();
         keys = this.input.keyboard.addKeys({
@@ -121,39 +143,6 @@ class Menu extends Phaser.Scene {
                 this.sfxSelect.play();
             }
         }
-
-        this.playTxt.on("pointerover", () => {
-            if (this.menuSelection != 0) {
-                this.sfxSelect.play();
-            }
-            this.menuSelection = 0;
-        });
-
-        this.scoresTxt.on("pointerover", () => {
-            if (this.menuSelection != 1) {
-                this.sfxSelect.play();
-            }
-            this.menuSelection = 1;
-        });
-
-        this.creditsTxt.on("pointerover", () => {
-            if (this.menuSelection != 2) {
-                this.sfxSelect.play();
-            }
-            this.menuSelection = 2;
-        });
-
-        this.playTxt.on("pointerdown", () => {
-            this.buttonPressed = true;
-        });
-
-        this.scoresTxt.on("pointerdown", () => {
-            this.buttonPressed = true;
-        });
-
-        this.creditsTxt.on("pointerdown", () => {
-            this.buttonPressed = true;
-        });
 
         if (this.menuSelection == 0) {
             this.playTxt.setText(">PLAY");
@@ -212,7 +201,7 @@ class Menu extends Phaser.Scene {
     }
     saveFile() {
         var file = {
-            LEON: 149300,
+            LEON: 166450,
             COCO: 225000,
             WILT: 215000,
             FRANKIE: 205000,

@@ -66,7 +66,7 @@ class Asteroid extends Phaser.Physics.Matter.Sprite {
                     this.scene.sound.setVolume(0.7).play("sfx-explosion2");
                     this.despawn();
                     // update score
-                    this.scene.score += 150;
+                    this.scene.score += 300;
                 }
             }
         });

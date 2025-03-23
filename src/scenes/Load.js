@@ -6,7 +6,7 @@ class Load extends Phaser.Scene {
     preload() {
         // Load Audio
         this.load.path = "./assets/audio/";
-        // this.load.audio("backgroundMusic", "song.wav");
+
         this.load.audio("sfx-shoot", "Laser_shoot 42.wav");
         this.load.audio("sfx-explosion1", "Explosion 2.wav");
         this.load.audio("sfx-explosion2", "Explosion 2(3).wav");
@@ -43,6 +43,13 @@ class Load extends Phaser.Scene {
         this.load.image("background", "stars2.png");
         this.load.image("green", "2x2green.png");
         this.load.image("brown", "4x4brown.png");
+        this.load.image("red", "4x4red.png");
+
+        this.load.plugin(
+            "rexvirtualjoystickplugin",
+            "https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexvirtualjoystickplugin.min.js",
+            true
+        );
     }
     create() {
         this.background = this.add

@@ -31,18 +31,20 @@ class Scores extends Phaser.Scene {
             // .setDropShadow(1, 2, "0xFF0000", 123)
             .setCharacterTint(0, -1, true, "0xFFFFFF");
         // BOTTOM TEXT
-        this.add
-            .bitmapText(
-                game.config.width / 2, // x
-                (game.config.height / 8) * 7, // y
-                "VCROSDMono", // key
-                "USE W/S OR UP/DOWN TO SCROLL UP AND DOWN\nPRESS SPACE TO GO BACK", // text
-                21, // size
-                1 // align
-            )
-            .setOrigin(0.5)
-            // .setDropShadow(1, 2, "0xFF0000", 123)
-            .setCharacterTint(0, -1, true, "0xFFFFFF");
+        if (!this.sys.game.device.input.touch) {
+            this.add
+                .bitmapText(
+                    game.config.width / 2, // x
+                    (game.config.height / 8) * 7, // y
+                    "VCROSDMono", // key
+                    "USE W/S/UP/DOWN OR DRAG UP AND DOWN\nPRESS SPACE TO GO BACK", // text
+                    21, // size
+                    1 // align
+                )
+                .setOrigin(0.5)
+                // .setDropShadow(1, 2, "0xFF0000", 123)
+                .setCharacterTint(0, -1, true, "0xFFFFFF");
+        }
 
         this.scores = this.loadFile();
 
@@ -58,7 +60,7 @@ class Scores extends Phaser.Scene {
             .rectangle(
                 0,
                 game.config.height / 5,
-                720,
+                game.config.width,
                 (game.config.height / 10) * 6,
                 0xffffff
             )
@@ -68,7 +70,7 @@ class Scores extends Phaser.Scene {
         const mask = scoreArea.createBitmapMask();
 
         // SCORES
-        this.scoresText = this.add.group();
+        this.scoresText = this.add.container(0, 0);
         this.sortedScores.forEach((nameScore, index) => {
             // RANK
             this.scoresText.add(
@@ -125,8 +127,40 @@ class Scores extends Phaser.Scene {
                     .setCharacterTint(0, -1, true, "0xFFFFFF")
             );
         });
-        this.scoresText.getChildren().forEach((text) => {
+        this.scoresText.iterate((text) => {
             text.setMask(mask);
+        });
+
+        this.scoresText.setSize(
+            game.config.width,
+            (game.config.height / 10) * 6
+        );
+
+        this.scoresText.setInteractive(
+            new Phaser.Geom.Rectangle(
+                game.config.width / 2,
+                (game.config.height / 10) * 6 - 21,
+                game.config.width,
+                this.scoresText.getBounds().height
+            ),
+            Phaser.Geom.Rectangle.Contains,
+            {
+                draggable: true,
+                useHandCursor: true,
+            }
+        );
+        this.input.setDraggable(this.scoresText);
+
+        this.scoresText;
+
+        this.input.on("drag", (pointer, gameObject, dragX, dragY) => {
+            // gameObject.x = dragX;
+            if (
+                dragY < 0 &&
+                !(dragY < -this.sortedScores.length * 48 + 6 * 48)
+            ) {
+                gameObject.y = dragY;
+            }
         });
 
         cursors = this.input.keyboard.createCursorKeys();
@@ -135,6 +169,27 @@ class Scores extends Phaser.Scene {
             S: Phaser.Input.Keyboard.KeyCodes.S,
             SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
         });
+
+        // MOBILE RETURN
+        if (this.sys.game.device.input.touch) {
+            this.returnTxt = this.add
+                .bitmapText(
+                    game.config.width / 2, // x
+                    (game.config.height / 10) * 9, // y
+                    "VCROSDMono", // key
+                    "PRESS HERE TO GO BACK", // text
+                    21 // size
+                )
+                .setCharacterTint(0, -1, true, "0xFFFFFF")
+                .setInteractive({ useHandCursor: true })
+                .setOrigin(0.5)
+                .on("pointerup", () => {
+                    this.sound.play("sfx-select2");
+                    this.scene.start("menuScene", {
+                        backgroundY: this.background.tilePositionY,
+                    });
+                });
+        }
     }
     update(time, delta) {
         this.timeSinceMove += delta;
@@ -150,7 +205,7 @@ class Scores extends Phaser.Scene {
         }
 
         if ((keys.W.isDown || cursors.up.isDown) && this.scrollPos > 0) {
-            this.scoresText.getChildren().forEach((text) => {
+            this.scoresText.iterate((text) => {
                 text.y += 2;
             });
             this.scrollPos -= 2;
@@ -159,7 +214,7 @@ class Scores extends Phaser.Scene {
             (keys.S.isDown || cursors.down.isDown) &&
             this.scrollPos < this.sortedScores.length * 48 - 6 * 48
         ) {
-            this.scoresText.getChildren().forEach((text) => {
+            this.scoresText.iterate((text) => {
                 text.y -= 2;
             });
             this.scrollPos += 2;
